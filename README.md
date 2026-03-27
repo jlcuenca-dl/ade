@@ -1,16 +1,17 @@
 # ADE — Atlas de Datos Estadísticos
 
-> Sistema de análisis y visualización de datos estadísticos desplegado en Google Cloud Platform.
+> Sistema de análisis y visualización de datos estadísticos.
 
 ## 🏗️ Stack Tecnológico
 
 | Componente | Tecnología |
 |:-----------|:-----------|
 | **Backend** | Python 3.11 · FastAPI · SQLAlchemy |
+| **Repositorio** | [GitHub - jlcuenca-dl/ade](https://github.com/jlcuenca-dl/ade.git) |
 | **Base de Datos** | PostgreSQL 15 (Cloud SQL) |
 | **Contenedores** | Docker · Multi-stage builds |
 | **IaC** | Terraform (módulos reutilizables) |
-| **CI/CD** | Cloud Build · Artifact Registry |
+| **CI/CD** | Cloud Build + GitHub Triggers |
 | **Cloud** | Google Cloud Platform (Cloud Run) |
 
 ## 🚀 Quick Start (Local)
