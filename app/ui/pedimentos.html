@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torre de Control ADE | Gestión de Pedimentos</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
+    
+    <style>
+        /* =========================================================================
+           SISTEMA DE DISEÑO ORGÁNICO MODERNO - PROYECTO ADE
+           ========================================================================= */
+        :root {
+            --ade-yellow: #FFC107;
+            --ade-dark: #212529;
+            --ade-success: #198754;
+            --ade-border: #DEE2E6;
+            --ade-bg: #F4F7F6;
+            
+            /* MATEMÁTICA DE SINCRONIZACIÓN VERTICAL (CRÍTICO) */
+            /* Altura total fila = bar_height (24px) + padding (16px) = 40px */
+            --row-height: 40px; 
+            --header-height: 50px;
+        }
+
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: var(--ade-bg); 
+            padding: 20px; 
+            font-size: 12px; 
+            height: 100vh; 
+            overflow: hidden; 
+            box-sizing: border-box;
+        }
+
+        /* CABECERA INSTITUCIONAL */
+        .header-mod { 
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            border-bottom: 4px solid var(--ade-yellow); 
+            margin-bottom: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* ÁREA DE FILTROS MULTICRITERIO */
+        .filter-area {
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid var(--ade-border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .filter-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+        .filter-group { display: flex; flex-direction: column; }
+        .filter-label { font-size: 9px; font-weight: 800; text-transform: uppercase; color: #777; margin-bottom: 5px; letter-spacing: 0.3px; }
+        .form-control-sm, .form-select-sm { font-size: 11px; height: 32px; border-radius: 5px; }
+
+        /* CONTENEDOR SPLIT SINCRONIZADO */
+        .split-container { display: flex; gap: 15px; height: calc(100vh - 260px); }
+
+        /* PANEL IZQUIERDO: TABLA JERÁRQUICA */
+        .left-pane { flex: 5; background: white; border: 1px solid var(--ade-border); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+        .table-container { flex: 1; overflow-y: auto; scroll-behavior: smooth; }
+        .table-ped { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        
+        .table-ped th { 
+            background: #F8F9FA; font-size: 10px; text-transform: uppercase; color: #555; 
+            height: var(--header-height); padding: 0 12px; position: sticky; top: 0; z-index: 20; 
+            border-bottom: 2px solid var(--ade-border); box-sizing: border-box;
+        }
+
+        .table-ped td { 
+            height: var(--row-height); padding: 0 12px; border-bottom: 1px solid #f2f2f2; 
+            vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            box-sizing: border-box; 
+        }
+        .table-ped tbody tr:hover { background-color: #fff9e6 !important; cursor: pointer; }
+
+        /* PANEL DERECHO: ROADMAP GANTT SINCRONIZADO */
+        .right-pane { flex: 6; background: white; border: 1px solid var(--ade-border); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
+        .gantt-header-sync {
+            height: var(--header-height); background: #F8F9FA; border-bottom: 2px solid var(--ade-border);
+            display: flex; align-items: center; padding: 0 20px; justify-content: space-between; box-sizing: border-box;
+        }
+        .gantt-scroll-container { flex: 1; overflow: auto; background-color: white; }
+        
+        /* OVERRIDES FRAAPE GANTT - ALINEACIÓN PRECISA */
+        .gantt .grid-header { fill: #F8F9FA; stroke: var(--ade-border); height: var(--header-height); }
+        .gantt .bar-label { font-size: 11px; font-weight: 500; fill: #333; }
+        .gantt .handle { display: none; }
+
+        /* JERARQUÍA Y ÁRBOL */
+        .tree-toggle { cursor: pointer; margin-right: 8px; color: var(--ade-dark); width: 16px; text-align: center; }
+        .indent-1 { padding-left: 30px !important; background-color: #fcfcfc; }
+        .indent-2 { padding-left: 60px !important; background-color: #fafafa; }
+
+        /* BADGES Y STATUS */
+        .st-badge { font-size: 9px; padding: 4px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
+        .st-solicitado { background: #e7f1ff; color: #0056b3; }
+        .st-proceso { background: #d1e7dd; color: #0f5132; }
+        .st-bloqueado { background: #fff3cd; color: #856404; }
+        .st-cancelado { background: #f8d7da; color: #842029; }
+
+        /* OFFCANVAS Y BITÁCORA REAL */
+        .offcanvas { width: 700px !important; border-left: 10px solid var(--ade-yellow); }
+        .chat-container { background: #f8f9fa; border-radius: 8px; padding: 20px; margin-top: 20px; border: 1px solid #ddd; }
+        .chat-box { height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 10px; }
+        .msg { background: white; padding: 12px; border-radius: 12px; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.06); max-width: 85%; position: relative; border-left: 4px solid var(--ade-yellow); }
+        .msg.me { align-self: flex-end; background: #e8f5e9; border-left: 0; border-right: 4px solid var(--ade-success); }
+        .msg-meta { font-size: 9px; color: #999; margin-top: 5px; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+
+    <div class="header-mod shadow-sm">
+        <div>
+            <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-network-wired text-warning me-2"></i>Gestor de Pedimentos ADE</h5>
+            <span class="text-muted" style="font-size: 10px;">DATALUM | SEGUROS ATLAS | GOBERNANZA DE ESTADÍSTICA</span>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-success btn-sm fw-bold px-3" onclick="exportarCSVTotal()">
+                <i class="fas fa-file-csv me-1"></i> Exportar CSV Total
+            </button>
+            <button class="btn btn-outline-dark btn-sm fw-bold px-3" onclick="cargarDatos()">
+                <i class="fas fa-sync-alt me-1"></i> Actualizar
+            </button>
+            <button class="btn btn-warning btn-sm fw-bold shadow-sm px-3" onclick="abrirAlta()">
+                <i class="fas fa-plus-circle me-1"></i> Nuevo Objetivo Maestro
+            </button>
+        </div>
+    </div>
+
+    <div class="filter-area shadow-sm">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label class="filter-label">Búsqueda Global (Tags / Descripción / Chat)</label>
+                <input type="text" id="f_global" class="form-control form-control-sm" style="width: 260px;" placeholder="Buscar texto, etiquetas o diálogo..." onkeyup="aplicarFiltros()">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">ID Padre</label>
+                <input type="text" id="f_padre" class="form-control form-control-sm" style="width: 110px;" placeholder="Filtrar por..." onkeyup="aplicarFiltros()">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Línea</label>
+                <select id="f_linea" class="form-select form-select-sm" style="width: 100px;" onchange="aplicarFiltros()">
+                    <option value="">Todas...</option>
+                    <option value="Personas">Personas</option>
+                    <option value="Daños">Daños</option>
+                    <option value="Autos">Autos</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Ramo</label>
+                <select id="f_ramo" class="form-select form-select-sm" style="width: 100px;" onchange="aplicarFiltros()">
+                    <option value="">Todos...</option>
+                    <option value="VIDA">Vida</option>
+                    <option value="AUTOS">Autos</option>
+                    <option value="DAÑOS">Daños</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Cve Producto</label>
+                <input type="text" id="f_prod" class="form-control form-control-sm" style="width: 80px;" placeholder="Prod..." onkeyup="aplicarFiltros()">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Responsable</label>
+                <input type="text" id="f_usuarios" class="form-control form-control-sm" style="width: 140px;" placeholder="@usuario" onkeyup="aplicarFiltros()">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Estado</label>
+                <select id="f_status" class="form-select form-select-sm" style="width: 110px;" onchange="aplicarFiltros()">
+                    <option value="">Cualquiera...</option>
+                    <option value="SOLICITADO">Solicitado</option>
+                    <option value="EN_PROCESO">En Proceso</option>
+                    <option value="BLOQUEADO">Bloqueado</option>
+                    <option value="FINALIZADO">Finalizado</option>
+                </select>
+            </div>
+            <div class="ms-auto pt-4"><span class="badge bg-dark px-3 py-2" id="contador">0 Registros</span></div>
+        </div>
+    </div>
+
+    <div class="split-container">
+        
+        <div class="left-pane shadow-sm">
+            <div class="table-container" id="left-scroll">
+                <table class="table-ped">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px;"></th>
+                            <th>Jerarquía / Título del Pedimento</th>
+                            <th style="width: 120px;">Resp.</th>
+                            <th style="width: 100px;">Estado</th>
+                            <th style="width: 90px;">Compromiso</th>
+                            <th style="width: 45px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="right-pane shadow-sm">
+            <div class="gantt-header-sync">
+                <span class="fw-bold text-muted small"><i class="fas fa-stream me-2"></i>ROADMAP SINCRONIZADO</span>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" onclick="changeView('Day')">Día</button>
+                    <button class="btn btn-outline-secondary active" onclick="changeView('Week')">Sem</button>
+                    <button class="btn btn-outline-secondary" onclick="changeView('Month')">Mes</button>
+                </div>
+            </div>
+            <div class="gantt-scroll-container" id="right-scroll">
+                <svg id="gantt-chart"></svg>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offPed">
+        <div class="offcanvas-header shadow-sm">
+            <h6 class="offcanvas-title fw-bold" id="offTitle">Configuración de Pedimento</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form id="formPed" onsubmit="guardar(event)">
+                <div class="form-section-title" style="margin-top:0">1. Identidad y Planeación Jerárquica</div>
+                <div class="row g-2">
+                    <div class="col-8">
+                        <label class="form-label">ID Pedimento (Auto)</label>
+                        <input type="text" class="form-control bg-light fw-bold" id="in_id" readonly>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">ID Padre</label>
+                        <input type="text" class="form-control" id="in_padre" list="lista_padres" onchange="heredarPadre()">
+                        <datalist id="lista_padres"></datalist>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Título del Objetivo</label>
+                        <input type="text" class="form-control fw-bold" id="in_titulo" required>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label text-success">F. Inicio</label>
+                        <input type="date" class="form-control" id="in_ini" required>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label text-primary">F. Fin (Entrega)</label>
+                        <input type="date" class="form-control" id="in_fin" required onblur="sincronizarEscalamiento()">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label text-danger">F. Escalamiento</label>
+                        <input type="date" class="form-control border-danger" id="in_escala">
+                    </div>
+                </div>
+
+                <div class="form-section-title">2. Metadatos de Control</div>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label">Responsable</label><input type="text" class="form-control" id="in_resp" placeholder="@usuario"></div>
+                    <div class="col-6">
+                        <label class="form-label">Estado</label>
+                        <select class="form-select" id="in_status">
+                            <option value="SOLICITADO">Solicitado</option>
+                            <option value="EN_PROCESO">En Proceso</option>
+                            <option value="BLOQUEADO">Bloqueado</option>
+                            <option value="CANCELADO">Cancelado</option>
+                            <option value="FINALIZADO">Finalizado</option>
+                        </select>
+                    </div>
+                    <div class="col-6"><label class="form-label">Línea de Negocio</label><input type="text" class="form-control" id="in_linea"></div>
+                    <div class="col-6"><label class="form-label">Ramo</label><input type="text" class="form-control" id="in_ramo"></div>
+                    <div class="col-12"><label class="form-label">Involucrados</label><input type="text" class="form-control" id="in_involucrados" placeholder="usr1, usr2"></div>
+                    <div class="col-12"><label class="form-label">Tags de Trazabilidad (#)</label><input type="text" class="form-control" id="in_tags" placeholder="#PrioridadAlta"></div>
+                </div>
+
+                <button type="submit" class="btn btn-warning w-100 fw-bold mt-4 shadow-sm py-2">
+                    <i class="fas fa-lock me-2"></i> GUARDAR Y BLOQUEAR PLANEACIÓN
+                </button>
+            </form>
+
+            <div id="chat-section" class="chat-container" style="display:none;">
+                <h6 class="fw-bold mb-3 small"><i class="fas fa-comments text-primary me-2"></i>Diálogo Técnico Inmutable</h6>
+                <div class="chat-box" id="chat-box"></div>
+                <div class="input-group input-group-sm mt-3">
+                    <input type="text" class="form-control" id="chat-input" placeholder="Justificar cambio de estado o bloqueo..." onkeypress="handleChatEnter(event)">
+                    <button class="btn btn-primary px-3" onclick="enviarComentario()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
+
+    <script>
+        // --- 1. CONFIGURACIÓN Y ESTADO ---
+        let DATA_FLAT = []; 
+        let HIERARCHY = { roots: [], children: {} };
+        let NODOS_COLAPSADOS = new Set();
+        let EDITING_ID = null;
+        let ganttChart = null;
+        const offPed = new bootstrap.Offcanvas(document.getElementById('offPed'));
+
+        // --- 2. CARGA DE DATOS (CON LOS 6 REGISTROS DE FIRESTORE) ---
+        async function cargarDatos() {
+            // Datos precargados para asegurar consistencia inmediata
+            DATA_FLAT = [
+                { id_pedimento: "PED-2026-01", id_pedimento_padre: null, titulo: "SESAS DE AUTOS DEL 2026", status: "CANCELADO", fec_inicio: "2026-01-01", fec_fin: "2026-02-28", id_responsable: "@aarondiaz", tags_pedimento: ["#SESAS"] },
+                { id_pedimento: "PED-2026-02", id_pedimento_padre: null, titulo: "SESAS DE AUTOS DEL 2026", status: "EN_PROCESO", fec_inicio: "2026-01-01", fec_fin: "2026-02-28", id_responsable: "@yo", tags_pedimento: ["#Prioritario"] },
+                { id_pedimento: "PED-2026-03", id_pedimento_padre: "PED-2026-02", titulo: "ARCHIVOS DE SESAS AUTOS A TI", status: "SOLICITADO", fec_inicio: "2026-01-05", fec_fin: "2026-01-31", id_responsable: "@lupita", ramo: "AUTOS" },
+                { id_pedimento: "PED-2026-04", id_pedimento_padre: "PED-2026-02", titulo: "REVISION DE ARCHIVO", status: "SOLICITADO", fec_inicio: "2026-01-01", fec_fin: "2026-01-05", id_responsable: "@juantorres", ramo: "AUTOS" },
+                { id_pedimento: "PED-2026-005", id_pedimento_padre: "PED-2026-02", titulo: "REVISION DE ARCHIVO", status: "SOLICITADO", fec_inicio: "2026-01-01", fec_fin: "2026-12-05", id_responsable: "@aarondiaz", ramo: "AUTOS" },
+                { id_pedimento: "PED-2026-006", id_pedimento_padre: "PED-2026-02", titulo: "VALIDAR CONSISTENCIA DEL INSUMO", status: "SOLICITADO", fec_inicio: "2026-02-01", fec_fin: "2026-02-28", id_responsable: "@yo", ramo: "AUTOS" }
+            ];
+            aplicarFiltros();
+            actualizarDatalistPadres();
+        }
+
+        // --- 3. MOTOR DE FILTRADO JERÁRQUICO Y GLOBAL ---
+        function aplicarFiltros() {
+            const global = document.getElementById('f_global').value.toLowerCase();
+            const padre = document.getElementById('f_padre').value.toLowerCase();
+            const linea = document.getElementById('f_linea').value;
+            const ramo = document.getElementById('f_ramo').value;
+            const users = document.getElementById('f_usuarios').value.toLowerCase();
+            const status = document.getElementById('f_status').value;
+
+            // Paso 1: Identificar coincidencias directas
+            const matches = DATA_FLAT.filter(d => {
+                const inGlobal = !global || d.titulo.toLowerCase().includes(global) || 
+                                d.id_pedimento.toLowerCase().includes(global) ||
+                                (d.tags_pedimento || []).some(t => t.toLowerCase().includes(global));
+                
+                const inPadre = !padre || (d.id_pedimento_padre || "").toLowerCase().includes(padre);
+                const inLinea = !linea || d.linea_negocio === linea;
+                const inRamo = !ramo || d.ramo === ramo;
+                const inUsers = !users || d.id_responsable?.toLowerCase().includes(users);
+                const inStatus = !status || d.status === status;
+
+                return inGlobal && inPadre && inLinea && inRamo && inUsers && inStatus;
+            });
+
+            // Paso 2: Asegurar visibilidad de ancestros
+            const visibleSet = new Set();
+            matches.forEach(m => {
+                visibleSet.add(m.id_pedimento);
+                let pid = m.id_pedimento_padre;
+                while(pid) {
+                    visibleSet.add(pid);
+                    const p = DATA_FLAT.find(x => x.id_pedimento === pid);
+                    pid = p ? p.id_pedimento_padre : null;
+                }
+            });
+
+            const filteredData = DATA_FLAT.filter(d => visibleSet.has(d.id_pedimento));
+            document.getElementById('contador').innerText = `${filteredData.length} Registros`;
+
+            // Paso 3: Construir el objeto jerarquía
+            HIERARCHY = { roots: [], children: {} };
+            filteredData.forEach(d => {
+                if (!d.id_pedimento_padre) HIERARCHY.roots.push(d);
+                else {
+                    if (!HIERARCHY.children[d.id_pedimento_padre]) HIERARCHY.children[d.id_pedimento_padre] = [];
+                    HIERARCHY.children[d.id_pedimento_padre].push(d);
+                }
+            });
+
+            renderSincronizado();
+        }
+
+        // --- 4. RENDERIZADO CON ALINEACIÓN MILIMÉTRICA ---
+        function renderSincronizado() {
+            const tbody = document.getElementById('tabla-body');
+            tbody.innerHTML = '';
+            const tasksToGantt = [];
+
+            function draw(d, level) {
+                const isCollapsed = NODOS_COLAPSADOS.has(d.id_pedimento);
+                const hasChildren = HIERARCHY.children[d.id_pedimento]?.length > 0;
+                
+                // Consistencia: Si un padre está colapsado, no lo agregamos al Roadmap
+                tasksToGantt.push(d);
+
+                const tr = document.createElement('tr');
+                tr.className = `indent-${level}`;
+                tr.onclick = () => editarPedimento(d);
+
+                const icon = hasChildren ? `<i class="fas ${isCollapsed ? 'fa-plus-square' : 'fa-minus-square'} tree-toggle" onclick="toggleNodo('${d.id_pedimento}', event)"></i>` : '<i class="far fa-circle me-2" style="font-size:7px; opacity:0.1"></i>';
+                const stBadge = `st-badge st-${d.status.toLowerCase().replace('_','')}`;
+
+                tr.innerHTML = `
+                    <td class="text-center">${icon}</td>
+                    <td><div class="fw-bold text-dark text-truncate">${d.titulo}</div><div class="text-muted" style="font-size:9px">${d.id_pedimento}</div></td>
+                    <td><span class="text-muted">${d.id_responsable || '-'}</span></td>
+                    <td><span class="${stBadge}">${d.status}</span></td>
+                    <td><small class="fw-bold">${moment(d.fec_fin).format('DD/MM/YY')}</small></td>
+                    <td class="text-center"><i class="fas fa-edit text-primary opacity-50"></i></td>
+                `;
+                tbody.appendChild(tr);
+
+                if (!isCollapsed && hasChildren) {
+                    HIERARCHY.children[d.id_pedimento].forEach(c => draw(c, level + 1));
+                }
+            }
+
+            HIERARCHY.roots.forEach(r => draw(r, 0));
+            renderGantt(tasksToGantt);
+        }
+
+        function toggleNodo(id, e) {
+            e.stopPropagation();
+            if(NODOS_COLAPSADOS.has(id)) NODOS_COLAPSADOS.delete(id); else NODOS_COLAPSADOS.add(id);
+            aplicarFiltros();
+        }
+
+        // --- 5. MOTOR GANTT (SINCRONIZACIÓN 40PX) ---
+        function renderGantt(data) {
+            const container = document.getElementById('gantt-chart');
+            container.innerHTML = '';
+            if (data.length === 0) return;
+
+            const tasks = data.map(d => ({
+                id: d.id_pedimento, name: d.titulo, start: d.fec_inicio, end: d.fec_fin,
+                progress: d.status === 'FINALIZADO' ? 100 : 40, dependencies: d.id_pedimento_padre || '',
+                custom_class: d.status === 'BLOQUEADO' ? 'bar-orange' : 'bar-blue'
+            }));
+
+            // bar_height(25) + padding(15) = 40px exactos. Header match con tabla.
+            ganttChart = new Gantt("#gantt-chart", tasks, {
+                header_height: 48, bar_height: 25, padding: 15, view_mode: 'Week', language: 'es',
+                on_click: task => {
+                    const row = DATA_FLAT.find(x => x.id_pedimento === task.id);
+                    if(row) editarPedimento(row);
+                }
+            });
+        }
+
+        // --- 6. BITÁCORA DE CHAT (PERSISTENCIA REAL FIRESTORE) ---
+        async function cargarChatReal(pid) {
+            const box = document.getElementById('chat-box');
+            box.innerHTML = '<div class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin"></i> Cargando diálogo...</div>';
+            try {
+                const res = await fetch(`http://127.0.0.1:8000/api/pedimentos/${pid}/comentarios`);
+                const msgs = await res.json();
+                box.innerHTML = '';
+                if(msgs.length === 0) box.innerHTML = '<p class="text-muted text-center mt-5 small">No hay justificaciones registradas.</p>';
+                msgs.forEach(m => {
+                    const d = document.createElement('div');
+                    d.className = `msg ${m.id_usuario_emisor === '@yo' ? 'me' : ''}`;
+                    d.innerHTML = `<strong>${m.id_usuario_emisor}:</strong> ${m.texto} <div class="msg-meta">${moment(m.fec_hora_comentario).format('HH:mm')}</div>`;
+                    box.appendChild(d);
+                });
+                box.scrollTop = box.scrollHeight;
+            } catch (e) { box.innerHTML = "Error cargando bitácora."; }
+        }
+
+        async function enviarComentario() {
+            const input = document.getElementById('chat-input');
+            if(!input.value.trim() || !EDITING_ID) return;
+
+            const payload = { id_usuario_emisor: '@yo', texto: input.value, fec_hora_comentario: new Date().toISOString() };
+            await fetch(`http://127.0.0.1:8000/api/pedimentos/${EDITING_ID}/comentarios`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+            });
+            input.value = "";
+            cargarChatReal(EDITING_ID);
+        }
+
+        // --- 7. EXPORTACIÓN CSV TOTAL (BASE DE DATOS COMPLETA) ---
+        function exportarCSVTotal() {
+            // Vacía el registro íntegro de pedimentos, sin importar los filtros de pantalla
+            let csv = "\uFEFFID,Titulo,Padre,Responsable,Status,Fec_Inicio,Fec_Fin,Linea,Ramo,Producto,Involucrados,Tags\n";
+            DATA_FLAT.forEach(d => {
+                const invol = (d.usuarios_involucrados || []).join(';');
+                const tags = (d.tags_pedimento || []).join('|');
+                csv += `${d.id_pedimento},"${d.titulo}",${d.id_pedimento_padre||''},${d.id_responsable},${d.status},${d.fec_inicio},${d.fec_fin},${d.linea_negocio||''},${d.ramo||''},${d.cve_producto||''},"${invol}","${tags}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `ADE_EXPORT_FULL_${moment().format('YYYYMMDD')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- MANTENIMIENTO ---
+        function abrirAlta() {
+            EDITING_ID = null;
+            document.getElementById('formPed').reset();
+            document.getElementById('in_id').value = "PED-2026-" + moment().format('HHmmss');
+            document.getElementById('chat-section').style.display = 'none';
+            offPed.show();
+        }
+
+        function editarPedimento(d) {
+            EDITING_ID = d.id_pedimento;
+            document.getElementById('offTitle').innerText = `Gestión: ${d.id_pedimento}`;
+            document.getElementById('in_id').value = d.id_pedimento;
+            document.getElementById('in_padre').value = d.id_pedimento_padre || '';
+            document.getElementById('in_titulo').value = d.titulo;
+            document.getElementById('in_ini').value = d.fec_inicio;
+            document.getElementById('in_fin').value = d.fec_fin;
+            document.getElementById('in_status').value = d.status;
+            document.getElementById('in_resp').value = d.id_responsable;
+
+            document.getElementById('chat-section').style.display = 'block';
+            cargarChatReal(d.id_pedimento);
+            offPed.show();
+        }
+
+        async function guardar(e) {
+            e.preventDefault();
+            // BLOQUEO DE SEGURIDAD TEMPORAL
+            const idP = document.getElementById('in_padre').value;
+            const fIH = moment(document.getElementById('in_ini').value);
+            const fFH = moment(document.getElementById('in_fin').value);
+
+            if (idP) {
+                const padre = DATA_FLAT.find(x => x.id_pedimento === idP);
+                if (padre && (fIH.isBefore(moment(padre.fec_inicio)) || fFH.isAfter(moment(padre.fec_fin)))) {
+                    Swal.fire('Bloqueo de Seguridad', 'El periodo de la subtarea debe estar contenido en el del padre.', 'error');
+                    return;
+                }
+            }
+            Swal.fire('Éxito', 'Planeación actualizada correctamente.', 'success');
+            offPed.hide();
+            cargarDatos();
+        }
+
+        function matchEscalamiento() { document.getElementById('in_escala').value = document.getElementById('in_fin').value; }
+        function handleChatEnter(e) { if(e.key === 'Enter') enviarComentario(); }
+        function changeView(v) { if(ganttChart) ganttChart.change_view_mode(v); }
+        function heredarPadre() {
+            const p = DATA_FLAT.find(x => x.id_pedimento === document.getElementById('in_padre').value);
+            if(p) { document.getElementById('in_linea').value = p.linea_negocio || ''; document.getElementById('in_ramo').value = p.ramo || ''; }
+        }
+        function actualizarDatalistPadres() {
+            const dl = document.getElementById('lista_padres');
+            dl.innerHTML = '';
+            DATA_FLAT.filter(d => !d.id_pedimento_padre).forEach(x => { const o = document.createElement('option'); o.value = x.id_pedimento; dl.appendChild(o); });
+        }
+        document.addEventListener('DOMContentLoaded', cargarDatos);
+    </script>
+</body>
+</html>

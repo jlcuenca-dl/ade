@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo Usuarios | ADE Core</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #F8F9FA; padding: 20px; font-size: 13px; }
+        .header-mod { border-bottom: 2px solid #34A853; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .card-table { background: white; border: 1px solid #ddd; border-radius: 8px; }
+        .filter-row { padding: 15px; background: #fff; border-bottom: 1px solid #eee; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .table-usr th { background: #f1f3f4; font-size: 11px; text-transform: uppercase; color: #555; vertical-align: middle; }
+        .table-usr td { vertical-align: middle; }
+        .table-usr tbody tr { cursor: pointer; transition: background-color 0.2s; }
+        .table-usr tbody tr:hover { background-color: #e8f5e9 !important; }
+        .badge-rol { background-color: #E8F0FE; color: #1967D2; padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 10px; border: 1px solid #D2E3FC; }
+        .offcanvas { width: 600px !important; } 
+        .offcanvas-header { background: #34A853; color: white; }
+        .form-label { font-size: 12px; font-weight: 500; margin-bottom: 2px; margin-top: 8px;}
+        .table-mini th { background: #e9ecef; font-size: 10px; padding: 4px; }
+        .table-mini td { font-size: 11px; padding: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="header-mod">
+        <div><h4 class="mb-0 text-success"><i class="fas fa-users-cog me-2"></i>Directorio de Usuarios</h4></div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-success btn-sm" onclick="exportarCSV()"><i class="fas fa-file-csv me-1"></i> CSV</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="cargarDatos()"><i class="fas fa-sync"></i></button>
+            <button class="btn btn-success btn-sm" onclick="abrirAlta()"><i class="fas fa-plus me-1"></i> Nuevo Usuario</button>
+        </div>
+    </div>
+
+    <div class="card-table">
+        <div class="filter-row">
+            <div class="input-group input-group-sm" style="width: 180px;">
+                <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" id="f_txt" placeholder="ID o Nombre..." onkeyup="aplicarFiltros()">
+            </div>
+            <select class="form-select form-select-sm" style="width: 120px;" id="f_rol" onchange="aplicarFiltros()">
+                <option value="">Rol</option>
+                <option value="ANALISTA">Analista</option>
+                <option value="GERENTE">Gerente</option>
+                <option value="DIRECTOR">Director</option>
+                <option value="ADMIN">Admin</option>
+            </select>
+            <input type="text" class="form-control form-control-sm" style="width: 120px;" id="f_jefe" placeholder="Reporta A" onkeyup="aplicarFiltros()">
+            
+            <select class="form-select form-select-sm" style="width: 130px;" id="f_linea" onchange="aplicarFiltros()">
+                <option value="">Línea Neg.</option>
+                <option value="Personas">Personas</option>
+                <option value="Daños">Daños</option>
+                <option value="Autos">Autos</option>
+            </select>
+            <select class="form-select form-select-sm" style="width: 110px;" id="f_ramo" onchange="aplicarFiltros()">
+                <option value="">Ramo</option>
+                <option value="VIDA">Vida</option>
+                <option value="GMM">GMM</option>
+                <option value="AUTOS">Autos</option>
+                <option value="DAÑOS">Daños</option>
+            </select>
+            <input type="text" class="form-control form-control-sm" style="width: 120px;" id="f_sub" placeholder="Subramo" onkeyup="aplicarFiltros()">
+            <input type="text" class="form-control form-control-sm" style="width: 120px;" id="f_prod" placeholder="Cve. Prod" onkeyup="aplicarFiltros()">
+            
+            <select class="form-select form-select-sm" style="width: 110px;" id="f_status" onchange="aplicarFiltros()">
+                <option value="">Status</option>
+                <option value="ACTIVO">Activo</option>
+                <option value="INACTIVO">Inactivo</option>
+            </select>
+            <div class="ms-auto text-muted small fw-bold pt-1" id="contador">0 registros</div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-usr mb-0">
+                <thead>
+                    <tr>
+                        <th>ID Usuario</th>
+                        <th>Nombre</th>
+                        <th>Rol</th>
+                        <th>Reporta A</th>
+                        <th>Responsabilidades</th>
+                        <th>Status</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offUsr">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offTitle">Perfil Usuario</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form id="formUsr" onsubmit="guardar(event)">
+                
+                <h6 class="text-success border-bottom pb-2 mb-3">Identidad y Acceso</h6>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label">ID Usuario (@)</label>
+                        <input type="text" class="form-control" name="id_usuario" id="in_id" placeholder="Ej: usuario o usuario@mail.com" pattern="[a-zA-Z0-9._@-]+$" title="Solo letras, números, @, puntos y guiones" required>
+                        <div class="form-text text-muted" style="font-size: 10px;">Sin espacios ni #, /, ?</div>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Rol</label>
+                        <select class="form-select" name="rol_jerarquico" id="in_rol">
+                            <option value="ANALISTA">Analista</option>
+                            <option value="GERENTE">Gerente</option>
+                            <option value="DIRECTOR">Director</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Nombre Completo</label>
+                        <input type="text" class="form-control" name="nombre_completo" id="in_nombre" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="correo_electronico" id="in_mail">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Reporta A</label>
+                        <input type="text" class="form-control" name="id_reporta_a" id="in_jefe">
+                    </div>
+                </div>
+
+                <h6 class="text-success border-bottom pb-2 mb-3 mt-4">Gestión de Responsabilidades</h6>
+                
+                <div class="card p-2 bg-light mb-2 border-0">
+                    <small class="fw-bold mb-2 d-block">Agregar Nueva Responsabilidad:</small>
+                    <div class="row g-1">
+                        <div class="col-6">
+                            <select class="form-select form-select-sm" id="tmp_linea">
+                                <option value="">Línea...</option>
+                                <option value="Personas">Personas</option>
+                                <option value="Daños">Daños</option>
+                                <option value="Autos">Autos</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <select class="form-select form-select-sm" id="tmp_ramo">
+                                <option value="">Ramo...</option>
+                                <option value="VIDA">Vida</option>
+                                <option value="GMM">GMM</option>
+                                <option value="AUTOS">Autos</option>
+                                <option value="DAÑOS">Daños</option>
+                            </select>
+                        </div>
+                        <div class="col-5">
+                            <input type="text" class="form-control form-control-sm" id="tmp_sub" placeholder="Subramo">
+                        </div>
+                        <div class="col-5">
+                            <input type="text" class="form-control form-control-sm" id="tmp_prod" placeholder="Cve Prod">
+                        </div>
+                        <div class="col-2">
+                            <button type="button" class="btn btn-success btn-sm w-100" onclick="agregarResponsabilidad()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border rounded p-0 mb-3" style="max-height: 200px; overflow-y: auto;">
+                    <table class="table table-sm table-striped table-mini mb-0">
+                        <thead>
+                            <tr>
+                                <th>Línea</th>
+                                <th>Ramo</th>
+                                <th>Subramo</th>
+                                <th>Producto</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-resp"></tbody>
+                    </table>
+                </div>
+                <div id="msg-resp" class="text-danger small mb-2" style="display:none;">Debe agregar al menos una responsabilidad.</div>
+
+                <div class="form-check form-switch mt-4 bg-light p-2 rounded border">
+                    <input class="form-check-input" type="checkbox" name="activo" id="in_activo" checked>
+                    <label class="form-check-label fw-bold">Usuario Activo</label>
+                </div>
+
+                <hr class="my-4">
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-success" id="btn-submit">Guardar Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const API = "http://127.0.0.1:8000/api/usuarios";
+        const API_SEARCH = "http://127.0.0.1:8000/api/usuarios/buscar";
+        
+        let DATA = [];
+        let FILTRADOS = [];
+        let EDITING_ID = null;
+        let RESP_TEMP = []; 
+        
+        const bsOffcanvas = new bootstrap.Offcanvas(document.getElementById('offUsr'));
+
+        document.addEventListener('DOMContentLoaded', cargarDatos);
+
+        async function cargarDatos() {
+            try {
+                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="10" class="text-center p-3 text-muted">Cargando directorio...</td></tr>';
+                const res = await fetch(API_SEARCH);
+                if(!res.ok) throw new Error("Error API");
+                DATA = await res.json();
+                aplicarFiltros();
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'No se pudo conectar', 'error');
+            }
+        }
+
+        function aplicarFiltros() {
+            const txt = document.getElementById('f_txt').value.toLowerCase();
+            const rol = document.getElementById('f_rol').value;
+            const jefe = document.getElementById('f_jefe').value.toLowerCase();
+            const lin = document.getElementById('f_linea').value;
+            const ram = document.getElementById('f_ramo').value;
+            const sub = document.getElementById('f_sub').value.toLowerCase();
+            const prod = document.getElementById('f_prod').value.toLowerCase();
+            const sta = document.getElementById('f_status').value;
+
+            FILTRADOS = DATA.filter(row => {
+                const str = JSON.stringify(row).toLowerCase();
+                const stReal = row.activo ? 'ACTIVO' : 'INACTIVO';
+                const resps = row.responsabilidades || [];
+
+                if(txt && !str.includes(txt)) return false;
+                if(rol && row.rol_jerarquico !== rol) return false;
+                if(jefe && (!row.id_reporta_a || !row.id_reporta_a.toLowerCase().includes(jefe))) return false;
+                if(sta && stReal !== sta) return false;
+
+                if(lin && !resps.some(r => r.linea_negocio === lin)) return false;
+                if(ram && !resps.some(r => r.ramo === ram)) return false;
+                if(sub && !resps.some(r => (r.subramo||'').toLowerCase().includes(sub))) return false;
+                if(prod && !resps.some(r => (r.cve_producto||'').toLowerCase().includes(prod))) return false;
+
+                return true;
+            });
+
+            renderTable(FILTRADOS);
+        }
+
+        function renderTable(rows) {
+            const tbody = document.getElementById('tabla-body');
+            tbody.innerHTML = '';
+            document.getElementById('contador').innerText = `${rows.length} registros`;
+
+            if(rows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="text-center p-3 text-muted">No se encontraron usuarios</td></tr>';
+                return;
+            }
+
+            rows.forEach(r => {
+                const stIcon = r.activo ? '<i class="fas fa-check-circle text-success"></i>' : '<i class="fas fa-ban text-danger"></i>';
+                const rowStr = encodeURIComponent(JSON.stringify(r));
+                
+                const resps = r.responsabilidades || [];
+                let respDisplay = '<small class="text-muted">Sin asignar</small>';
+                if(resps.length > 0) {
+                    const first = resps[0];
+                    respDisplay = `<span class="badge bg-light text-dark border">${first.ramo}</span>`;
+                    if(resps.length > 1) respDisplay += ` <span class="badge bg-secondary">+${resps.length-1}</span>`;
+                }
+
+                const tr = `
+                    <tr ondblclick="editar('${rowStr}')" title="Doble clic para ver detalle" style="cursor: pointer;">
+                        <td class="fw-bold">${r.id_usuario}</td>
+                        <td>${r.nombre_completo}</td>
+                        <td><span class="badge-rol">${r.rol_jerarquico || '-'}</span></td>
+                        <td><small>${r.id_reporta_a || '-'}</small></td>
+                        <td>${respDisplay}</td>
+                        <td>${stIcon} <small>${r.activo ? 'ACTIVO' : 'INACTIVO'}</small></td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-light border me-1" onclick="editar('${rowStr}')"><i class="fas fa-edit text-success"></i></button>
+                            <button class="btn btn-sm btn-light border" onclick="bajaLogica('${encodeURIComponent(r.id_usuario)}')"><i class="fas fa-trash text-danger"></i></button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += tr;
+            });
+        }
+
+        // --- LÓGICA DE RESPONSABILIDADES ---
+        function agregarResponsabilidad() {
+            const lin = document.getElementById('tmp_linea').value;
+            const ram = document.getElementById('tmp_ramo').value;
+            const sub = document.getElementById('tmp_sub').value;
+            const prod = document.getElementById('tmp_prod').value;
+
+            if(!lin || !ram) {
+                Swal.fire('Atención', 'Línea y Ramo son obligatorios', 'warning');
+                return;
+            }
+
+            RESP_TEMP.push({ linea_negocio: lin, ramo: ram, subramo: sub, cve_producto: prod });
+            renderRespTable();
+            
+            document.getElementById('tmp_sub').value = '';
+            document.getElementById('tmp_prod').value = '';
+        }
+
+        function quitarResponsabilidad(index) {
+            RESP_TEMP.splice(index, 1);
+            renderRespTable();
+        }
+
+        function renderRespTable() {
+            const tbody = document.getElementById('lista-resp');
+            tbody.innerHTML = '';
+            RESP_TEMP.forEach((r, idx) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${r.linea_negocio}</td>
+                        <td>${r.ramo}</td>
+                        <td>${r.subramo || '-'}</td>
+                        <td>${r.cve_producto || '-'}</td>
+                        <td class="text-end"><i class="fas fa-times text-danger" style="cursor:pointer" onclick="quitarResponsabilidad(${idx})"></i></td>
+                    </tr>
+                `;
+            });
+            
+            if(RESP_TEMP.length > 0) document.getElementById('msg-resp').style.display = 'none';
+        }
+
+        // --- CRUD ---
+        function abrirAlta() {
+            EDITING_ID = null;
+            RESP_TEMP = [];
+            document.getElementById('formUsr').reset();
+            renderRespTable();
+            document.getElementById('offTitle').innerText = "Nuevo Usuario";
+            document.getElementById('btn-submit').innerText = "Guardar";
+            document.getElementById('in_id').readOnly = false;
+            bsOffcanvas.show();
+        }
+
+        function editar(rowEncoded) {
+            const row = JSON.parse(decodeURIComponent(rowEncoded));
+            EDITING_ID = row.id_usuario;
+            RESP_TEMP = row.responsabilidades || [];
+            
+            document.getElementById('offTitle').innerText = "Editar Usuario";
+            document.getElementById('btn-submit').innerText = "Actualizar";
+            
+            document.getElementById('in_id').value = row.id_usuario;
+            document.getElementById('in_id').readOnly = true;
+            document.getElementById('in_nombre').value = row.nombre_completo;
+            document.getElementById('in_mail').value = row.correo_electronico || '';
+            document.getElementById('in_rol').value = row.rol_jerarquico;
+            document.getElementById('in_jefe').value = row.id_reporta_a || '';
+            document.getElementById('in_activo').checked = row.activo;
+
+            renderRespTable();
+            bsOffcanvas.show();
+        }
+
+        async function guardar(e) {
+            e.preventDefault();
+            
+            if(RESP_TEMP.length === 0) {
+                document.getElementById('msg-resp').style.display = 'block';
+                return;
+            }
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.activo = !!data.activo;
+            data.responsabilidades = RESP_TEMP;
+
+            const method = EDITING_ID ? 'PUT' : 'POST';
+            const url = EDITING_ID ? `${API}/${encodeURIComponent(EDITING_ID)}` : `${API}/guardar`;
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                if(res.ok) {
+                    Swal.fire('Éxito', 'Usuario guardado', 'success');
+                    bsOffcanvas.hide();
+                    cargarDatos();
+                } else {
+                    const err = await res.json();
+                    throw new Error(err.detail);
+                }
+            } catch (err) { Swal.fire('Error', err.message, 'error'); }
+        }
+
+        async function bajaLogica(idEncoded) {
+            if(event) event.stopPropagation();
+            const c = await Swal.fire({ title:'¿Baja Lógica?', icon:'warning', showCancelButton:true, confirmButtonColor:'#d33', confirmButtonText:'Sí' });
+            if(c.isConfirmed) {
+                await fetch(`${API}/${idEncoded}`, { method: 'DELETE' });
+                cargarDatos();
+            }
+        }
+        
+        function exportarCSV() {
+            if (FILTRADOS.length === 0) {
+                Swal.fire('Aviso', 'Nada para exportar', 'info');
+                return;
+            }
+            const headers = ['ID Usuario', 'Nombre', 'Email', 'Rol', 'Reporta A', 'Lineas_Asignadas', 'Status'];
+            const rows = FILTRADOS.map(r => {
+                const respStr = (r.responsabilidades || []).map(x => `[${x.linea_negocio}-${x.ramo}]`).join('; ');
+                return [
+                    r.id_usuario, r.nombre_completo, r.correo_electronico||'', r.rol_jerarquico, r.id_reporta_a||'',
+                    respStr, r.activo?'ACTIVO':'INACTIVO'
+                ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+            });
+            const csv = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url; a.download = `Usuarios_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+    </script>
+</body>
+</html>

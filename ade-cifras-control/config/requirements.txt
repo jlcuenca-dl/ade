@@ -1,0 +1,25 @@
+# =============================================================================
+# requirements.txt
+# Proyecto: ADE - Atlas de Datos Estadisticos
+# Descripcion: Dependencias Python para el modulo de Cifras Control
+# =============================================================================
+
+# Apache Beam con soporte para Google Cloud Dataflow
+apache-beam[gcp]==2.55.0
+
+# PostgreSQL driver
+psycopg2-binary==2.9.9
+
+# Google Cloud Libraries
+google-cloud-storage==2.16.0
+google-cloud-secret-manager==2.20.0
+google-cloud-logging==3.10.0
+
+# Gmail API
+google-auth==2.29.0
+google-auth-oauthlib==1.2.0
+google-auth-httplib2==0.2.0
+google-api-python-client==2.127.0
+
+# Utilidades
+python-dateutil==2.9.0
