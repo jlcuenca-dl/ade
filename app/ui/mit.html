@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo MIT | ADE Core</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #F8F9FA; padding: 20px; font-size: 13px; }
+        
+        /* Header */
+        .header-mit { border-bottom: 2px solid #1976D2; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Filtros */
+        .card-table { background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .filter-row { padding: 15px; background: #fff; border-bottom: 1px solid #eee; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .form-control-sm, .form-select-sm { border-radius: 4px; font-size: 12px; }
+        
+        /* Tabla con Efecto Doble Clic */
+        .table-mit th { background: #f1f3f4; font-size: 11px; text-transform: uppercase; color: #555; vertical-align: middle; }
+        .table-mit td { vertical-align: middle; }
+        
+        /* CURSOR POINTER Y HOVER PARA INDICAR QUE ES CLICABLE */
+        .table-mit tbody tr { cursor: pointer; transition: background-color 0.2s; }
+        .table-mit tbody tr:hover { background-color: #e3f2fd !important; }
+
+        /* Badges */
+        .badge-sev-alta { background-color: #FCE8E6; color: #C5221F; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 10px; border: 1px solid #fad2cf; }
+        .badge-sev-media { background-color: #FEF7E0; color: #B06000; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 10px; border: 1px solid #fce8b2; }
+        .badge-sev-baja { background-color: #E6F4EA; color: #137333; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 10px; border: 1px solid #ceead6; }
+        
+        /* Offcanvas */
+        .offcanvas { width: 500px !important; }
+        .offcanvas-header { background: #1976D2; color: white; }
+        .form-label { font-size: 12px; font-weight: 500; margin-bottom: 2px; }
+    </style>
+</head>
+<body>
+
+    <div class="header-mit">
+        <div>
+            <h4 class="mb-0 text-primary"><i class="fas fa-microchip me-2"></i>Motor MIT</h4>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-success btn-sm" onclick="exportarCSV()">
+                <i class="fas fa-file-csv me-1"></i> Exportar CSV
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="cargarDatos()">
+                <i class="fas fa-sync"></i>
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="abrirAlta()">
+                <i class="fas fa-plus me-1"></i> Nueva Regla
+            </button>
+        </div>
+    </div>
+
+    <div class="card-table">
+        <div class="filter-row">
+            <div class="input-group input-group-sm" style="width: 180px;">
+                <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" id="f_txt" placeholder="ID o Función..." onkeyup="aplicarFiltros()">
+            </div>
+
+            <select class="form-select form-select-sm" style="width: 130px;" id="f_linea" onchange="aplicarFiltros()">
+                <option value="">Línea Neg.</option>
+                <option value="Personas">Personas</option>
+                <option value="Daños">Daños</option>
+                <option value="Autos">Autos</option>
+            </select>
+
+            <select class="form-select form-select-sm" style="width: 110px;" id="f_ramo" onchange="aplicarFiltros()">
+                <option value="">Ramo</option>
+                <option value="VIDA">Vida</option>
+                <option value="GMM">GMM</option>
+                <option value="AUTOS">Autos</option>
+                <option value="DAÑOS">Daños</option>
+            </select>
+
+            <input type="text" class="form-control form-control-sm" style="width: 120px;" id="f_sub" placeholder="Subramo" onkeyup="aplicarFiltros()">
+            <input type="text" class="form-control form-control-sm" style="width: 120px;" id="f_prod" placeholder="Cve. Prod" onkeyup="aplicarFiltros()">
+
+            <select class="form-select form-select-sm" style="width: 110px;" id="f_sev" onchange="aplicarFiltros()">
+                <option value="">Severidad</option>
+                <option value="ALTA">Alta</option>
+                <option value="MEDIA">Media</option>
+                <option value="BAJA">Baja</option>
+            </select>
+
+            <select class="form-select form-select-sm" style="width: 110px;" id="f_status" onchange="aplicarFiltros()">
+                <option value="">Status</option>
+                <option value="ACTIVO">Activo</option>
+                <option value="INACTIVO">Inactivo</option>
+            </select>
+            
+            <div class="ms-auto text-muted small fw-bold pt-1" id="contador">0 registros</div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-mit mb-0">
+                <thead>
+                    <tr>
+                        <th>ID Incidencia</th>
+                        <th>Función Técnica</th>
+                        <th>Severidad</th>
+                        <th>Línea</th>
+                        <th>Ramo</th>
+                        <th>Subramo</th>
+                        <th>Producto</th>
+                        <th>Tags</th>
+                        <th>Status</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offMIT">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offTitle">Regla MIT</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form id="formRegla" onsubmit="guardar(event)">
+                
+                <div class="mb-3">
+                    <label class="form-label text-primary">IDENTIFICACIÓN</label>
+                    <input type="text" class="form-control" name="id_incidencia" id="in_id" placeholder="Ej: VAL-001" required>
+                    <div class="form-text text-muted" style="font-size: 11px;">Clave única. No editable tras la creación.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-primary">LÓGICA</label>
+                    <input type="text" class="form-control font-monospace" name="nombre_funcion" id="in_func" placeholder="fn_validacion" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Descripción</label>
+                    <textarea class="form-control" name="descripcion" id="in_desc" rows="2"></textarea>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label">Severidad</label>
+                        <select class="form-select" name="severidad" id="in_sev" required>
+                            <option value="ALTA">Alta</option>
+                            <option value="MEDIA">Media</option>
+                            <option value="BAJA">Baja</option>
+                            <option value="WARNING">Warning</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Ramo</label>
+                        <select class="form-select" name="ramo" id="in_ramo">
+                            <option value="VIDA">Vida</option>
+                            <option value="GMM">GMM</option>
+                            <option value="AUTOS">Autos</option>
+                            <option value="DAÑOS">Daños</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label">Subramo</label>
+                        <input type="text" class="form-control" name="subramo" id="in_sub">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Línea Negocio</label>
+                        <select class="form-select" name="linea_producto" id="in_linea">
+                            <option value="Personas">Personas</option>
+                            <option value="Daños">Daños</option>
+                            <option value="Autos">Autos</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Clave Producto</label>
+                    <input type="text" class="form-control" name="cve_producto" id="in_prod">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Tags Configuración</label>
+                    <input type="text" class="form-control" name="tags_config" id="in_tags" placeholder="#SAT, #PLD">
+                </div>
+
+                <div class="form-check form-switch mt-4 bg-light p-2 rounded border">
+                    <input class="form-check-input" type="checkbox" name="activo" id="in_activo" checked>
+                    <label class="form-check-label fw-bold">Regla Activa</label>
+                </div>
+
+                <hr class="my-4">
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary" id="btn-submit">Guardar Regla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const API = "http://127.0.0.1:8000/api/reglas";
+        let DATA = [];
+        let FILTRADOS = []; // Para exportación CSV
+        let EDITING_ID = null;
+        const bsOffcanvas = new bootstrap.Offcanvas(document.getElementById('offMIT'));
+
+        document.addEventListener('DOMContentLoaded', cargarDatos);
+
+        async function cargarDatos() {
+            try {
+                // Indicador de carga simple
+                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="10" class="text-center p-3 text-muted">Cargando datos...</td></tr>';
+                
+                const res = await fetch(API);
+                if(!res.ok) throw new Error("Error en servidor");
+                DATA = await res.json();
+                aplicarFiltros();
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'No se pudo conectar al API Reglas', 'error');
+                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="10" class="text-center text-danger">Error de conexión</td></tr>';
+            }
+        }
+
+        function aplicarFiltros() {
+            // Obtener valores de todos los filtros
+            const txt = document.getElementById('f_txt').value.toLowerCase();
+            const lin = document.getElementById('f_linea').value;
+            const ram = document.getElementById('f_ramo').value;
+            const sub = document.getElementById('f_sub').value.toLowerCase();
+            const prod = document.getElementById('f_prod').value.toLowerCase();
+            const sev = document.getElementById('f_sev').value;
+            const sta = document.getElementById('f_status').value;
+
+            FILTRADOS = DATA.filter(row => {
+                // 1. Texto General
+                const str = JSON.stringify(row).toLowerCase();
+                if(txt && !str.includes(txt)) return false;
+
+                // 2. Filtros Exactos (Selects)
+                if(lin && row.linea_producto !== lin) return false;
+                if(ram && row.ramo !== ram) return false;
+                if(sev && row.severidad !== sev) return false;
+                
+                // 3. Status (Mapeo)
+                const stReal = row.activo ? 'ACTIVO' : 'INACTIVO';
+                if(sta && stReal !== sta) return false;
+
+                // 4. Filtros Parciales (Inputs texto)
+                if(sub && (!row.subramo || !row.subramo.toLowerCase().includes(sub))) return false;
+                if(prod && (!row.cve_producto || !row.cve_producto.toLowerCase().includes(prod))) return false;
+                
+                return true;
+            });
+
+            renderTable(FILTRADOS);
+        }
+
+        function renderTable(rows) {
+            const tbody = document.getElementById('tabla-body');
+            tbody.innerHTML = '';
+            document.getElementById('contador').innerText = `${rows.length} registros`;
+
+            if(rows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="text-center p-3 text-muted">No hay registros que coincidan</td></tr>';
+                return;
+            }
+
+            rows.forEach(r => {
+                const sevClass = r.severidad === 'ALTA' ? 'badge-sev-alta' : (r.severidad === 'MEDIA' ? 'badge-sev-media' : 'badge-sev-baja');
+                const stIcon = r.activo ? '<i class="fas fa-check-circle text-success"></i>' : '<i class="fas fa-ban text-danger"></i>';
+                
+                // Serializamos para el botón editar
+                const rowStr = encodeURIComponent(JSON.stringify(r));
+
+                const tr = `
+                    <tr ondblclick="editar('${rowStr}')" title="Doble clic para editar">
+                        <td class="fw-bold text-primary">${r.id_incidencia}</td>
+                        <td>${r.nombre_funcion}</td>
+                        <td><span class="${sevClass}">${r.severidad}</span></td>
+                        <td>${r.linea_producto || '-'}</td>
+                        <td>${r.ramo || '-'}</td>
+                        <td>${r.subramo || '-'}</td>
+                        <td>${r.cve_producto || '-'}</td>
+                        <td><small class="text-muted">${r.tags_config || '-'}</small></td>
+                        <td>${stIcon} <small>${r.activo ? 'ACTIVO' : 'INACTIVO'}</small></td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-light border me-1" onclick="editar('${rowStr}')" title="Editar"><i class="fas fa-edit text-primary"></i></button>
+                            <button class="btn btn-sm btn-light border" onclick="bajaLogica('${r.id_incidencia}')" title="Baja Lógica"><i class="fas fa-trash text-danger"></i></button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += tr;
+            });
+        }
+
+        // --- EXPORTAR CSV ---
+        function exportarCSV() {
+            if (FILTRADOS.length === 0) {
+                Swal.fire('Aviso', 'No hay datos para exportar', 'info');
+                return;
+            }
+
+            // Definir cabeceras CSV
+            const headers = ['ID', 'Función', 'Descripción', 'Severidad', 'Línea', 'Ramo', 'Subramo', 'Producto', 'Tags', 'Status', 'Fecha Actualización'];
+            
+            // Construir filas
+            const rows = FILTRADOS.map(r => {
+                return [
+                    r.id_incidencia,
+                    r.nombre_funcion,
+                    `"${(r.descripcion || '').replace(/"/g, '""')}"`, // Escapar comillas en descripción
+                    r.severidad,
+                    r.linea_producto || '',
+                    r.ramo || '',
+                    r.subramo || '',
+                    r.cve_producto || '',
+                    `"${(r.tags_config || '').replace(/"/g, '""')}"`,
+                    r.activo ? 'ACTIVO' : 'INACTIVO',
+                    r.fec_status || ''
+                ].join(',');
+            });
+
+            // Unir todo
+            const csvContent = [headers.join(','), ...rows].join('\n');
+            
+            // Crear Blob y descargar
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `MIT_Reglas_${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- FUNCIONES ABC (CRUD) ---
+
+        function abrirAlta() {
+            EDITING_ID = null;
+            document.getElementById('formRegla').reset();
+            document.getElementById('offTitle').innerText = "Nueva Regla (Alta)";
+            document.getElementById('btn-submit').innerText = "Guardar Alta";
+            document.getElementById('btn-submit').classList.replace('btn-warning', 'btn-primary');
+            
+            // Desbloquear ID
+            const idField = document.getElementById('in_id');
+            idField.readOnly = false;
+            idField.classList.remove('bg-light');
+            
+            bsOffcanvas.show();
+        }
+
+        function editar(rowEncoded) {
+            const row = JSON.parse(decodeURIComponent(rowEncoded));
+            EDITING_ID = row.id_incidencia;
+            
+            document.getElementById('offTitle').innerText = "Editar Regla (Cambio)";
+            document.getElementById('btn-submit').innerText = "Guardar Cambio";
+            document.getElementById('btn-submit').classList.replace('btn-primary', 'btn-warning');
+
+            // Llenar campos
+            document.getElementById('in_id').value = row.id_incidencia;
+            document.getElementById('in_func').value = row.nombre_funcion;
+            document.getElementById('in_desc').value = row.descripcion || '';
+            document.getElementById('in_sev').value = row.severidad;
+            document.getElementById('in_ramo').value = row.ramo || '';
+            document.getElementById('in_sub').value = row.subramo || '';
+            document.getElementById('in_linea').value = row.linea_producto || '';
+            document.getElementById('in_prod').value = row.cve_producto || '';
+            document.getElementById('in_tags').value = row.tags_config || '';
+            document.getElementById('in_activo').checked = row.activo;
+
+            // Bloquear ID (No editable en cambios)
+            const idField = document.getElementById('in_id');
+            idField.readOnly = true;
+            idField.classList.add('bg-light');
+
+            bsOffcanvas.show();
+        }
+
+        async function guardar(e) {
+            e.preventDefault();
+            
+            // Recoger datos
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.activo = !!data.activo; // Boolean
+
+            // Definir Método y URL
+            const method = EDITING_ID ? 'PUT' : 'POST';
+            const url = EDITING_ID ? `${API}/${EDITING_ID}` : API;
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                if(res.ok) {
+                    Swal.fire('Guardado', EDITING_ID ? 'Cambio realizado' : 'Alta exitosa', 'success');
+                    bsOffcanvas.hide();
+                    cargarDatos();
+                } else {
+                    const err = await res.json();
+                    throw new Error(err.detail);
+                }
+            } catch (error) {
+                Swal.fire('Error', error.message, 'error');
+            }
+        }
+
+        async function bajaLogica(id) {
+            // Evitamos la propagación del doble click
+            if(event) event.stopPropagation();
+
+            const conf = await Swal.fire({
+                title: '¿Baja Lógica?',
+                text: "El registro pasará a estatus INACTIVO. No se borra físicamente.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Sí, dar de baja'
+            });
+
+            if(conf.isConfirmed) {
+                try {
+                    const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+                    if(res.ok) {
+                        Swal.fire('Baja', 'Registro inactivado', 'success');
+                        cargarDatos();
+                    } else { throw new Error('Error API'); }
+                } catch(e) {
+                    Swal.fire('Error', 'No se pudo aplicar la baja lógica', 'error');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radiografía Ejecutiva | ADE Core</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --ade-yellow: #FFC107;
+            --ade-red: #D93025;
+            --ade-success: #1E8E3E;
+            --ade-blue: #1A73E8;
+            --ade-dark: #202124;
+            --ade-bg: #F8F9FA;
+        }
+
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: var(--ade-bg); 
+            color: var(--ade-dark);
+            height: 100vh;
+            overflow-x: hidden;
+            padding: 15px;
+        }
+
+        /* Estructura de Tarjetas Directivas */
+        .header-mod { 
+            background: white; padding: 15px 25px; border-radius: 10px;
+            border-bottom: 4px solid var(--ade-yellow); margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .kpi-card {
+            background: white; border-radius: 12px; padding: 18px;
+            border-left: 5px solid var(--ade-blue);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.04);
+            transition: transform 0.2s;
+        }
+        .kpi-card:hover { transform: translateY(-3px); }
+        .kpi-card.warning { border-left-color: var(--ade-yellow); }
+        .kpi-card.danger { border-left-color: var(--ade-red); }
+        .kpi-card.success { border-left-color: var(--ade-success); }
+        .kpi-title { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #5f6368; }
+        .kpi-value { font-size: 24px; font-weight: 700; margin: 5px 0; }
+
+        /* Contenedores de Gráficas con altura controlada */
+        .chart-container {
+            background: white; border-radius: 12px; padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            height: 300px; /* Altura fija para evitar el error de gráficas enormes */
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .chart-title { font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; color: #3c4043; border-bottom: 1px solid #f1f3f4; padding-bottom: 8px; }
+
+        /* Filtros de Radiografía */
+        .filter-pane { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #eee; display: flex; gap: 10px; align-items: flex-end; }
+        .filter-group { display: flex; flex-direction: column; flex: 1; }
+        .filter-group label { font-size: 9px; font-weight: 800; color: #70757a; margin-bottom: 4px; text-transform: uppercase; }
+
+        .table-custom { font-size: 12px; background: white; border-radius: 10px; overflow: hidden; }
+        .table-custom th { background: #f8f9fa; text-transform: uppercase; font-size: 10px; color: #5f6368; padding: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="header-mod">
+        <div>
+            <h5 class="mb-0 fw-bold"><i class="fas fa-chart-line text-warning me-2"></i>Radiografía de Control ADE</h5>
+            <span class="text-muted small">Visualización Integral de Calidad y Planeación (Datos Dummy de Muestra)</span>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-dark btn-sm fw-bold"><i class="fas fa-download me-1"></i> Reporte PDF</button>
+            <button class="btn btn-warning btn-sm fw-bold px-3 shadow-sm"><i class="fas fa-sync-alt"></i> Actualizar</button>
+        </div>
+    </div>
+
+    <div class="filter-pane shadow-sm">
+        <div class="filter-group">
+            <label>Línea de Negocio</label>
+            <select class="form-select form-select-sm"><option>Consolidado Total</option><option>Personas</option><option>Daños</option><option>Autos</option></select>
+        </div>
+        <div class="filter-group">
+            <label>Ramo / Sub-ramo</label>
+            <select class="form-select form-select-sm"><option>Todos los Ramos</option><option>Vida Individual</option><option>GMM</option><option>Responsabilidad Civil</option></select>
+        </div>
+        <div class="filter-group" style="flex: 0.5;">
+            <label>Cve Producto</label>
+            <input type="text" class="form-control form-control-sm" placeholder="Ej: V100">
+        </div>
+        <button class="btn btn-dark btn-sm px-4 fw-bold" style="height: 31px;">Filtrar Radiografía</button>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="kpi-card shadow-sm">
+                <div class="kpi-title">Pedimentos Activos</div>
+                <div class="kpi-value text-primary">24</div>
+                <small class="text-muted"><i class="fas fa-clock"></i> 8 en proceso crítico</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi-card danger shadow-sm">
+                <div class="kpi-title">Incidencias Alta Severidad</div>
+                <div class="kpi-value text-danger">158</div>
+                <small class="text-danger fw-bold"><i class="fas fa-exclamation-triangle"></i> Bloquean SESAS Vida</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi-card warning shadow-sm">
+                <div class="kpi-title">Tiempo Prom. Atención</div>
+                <div class="kpi-value text-warning">4.2 d</div>
+                <small class="text-muted"><i class="fas fa-arrow-up"></i> +0.5 vs mes anterior</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi-card success shadow-sm">
+                <div class="kpi-title">Saneamiento del Mes</div>
+                <div class="kpi-value text-success">92.4%</div>
+                <small class="text-success fw-bold"><i class="fas fa-check-circle"></i> Objetivo Cumplido</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="chart-container">
+                <div class="chart-title">Distribución por Ramo (Incidencias)</div>
+                <canvas id="chartRamos"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-container">
+                <div class="chart-title">Estatus de Pedimentos</div>
+                <canvas id="chartPedimentos"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-container">
+                <div class="chart-title">Calidad por Fase (MIT)</div>
+                <canvas id="chartFase"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold small text-uppercase"><i class="fas fa-users-cog me-2"></i>Carga de Trabajo por Responsable / Área</h6>
+            <span class="badge bg-light text-dark border">Consolidado Tiempo Real</span>
+        </div>
+        <table class="table table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Responsable / Área</th>
+                    <th>Línea de Negocio</th>
+                    <th class="text-center">Pedimentos</th>
+                    <th class="text-center">Incidencias Críticas</th>
+                    <th>Última Actividad</th>
+                    <th>Estatus</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>@aarondiaz</strong> - Actuaría</td>
+                    <td>Personas</td>
+                    <td class="text-center">5</td>
+                    <td class="text-center text-danger fw-bold">12</td>
+                    <td>Hace 10 min</td>
+                    <td><span class="badge bg-danger">En Alerta</span></td>
+                </tr>
+                <tr>
+                    <td><strong>@lupitam</strong> - Suscripción</td>
+                    <td>Autos</td>
+                    <td class="text-center">3</td>
+                    <td class="text-center">4</td>
+                    <td>Hace 1 hora</td>
+                    <td><span class="badge bg-success">Al día</span></td>
+                </tr>
+                <tr>
+                    <td><strong>@juantorres</strong> - Operación</td>
+                    <td>Daños</td>
+                    <td class="text-center fw-bold">14</td>
+                    <td class="text-center text-danger fw-bold">89</td>
+                    <td>Ayer</td>
+                    <td><span class="badge bg-warning text-dark">Bloqueado</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Configuración de Gráficas con maintainAspectRatio: false y responsive: true
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+        };
+
+        // 1. Gráfica de Ramos (Doughnut)
+        new Chart(document.getElementById('chartRamos'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Vida', 'Autos', 'Daños', 'GMM'],
+                datasets: [{
+                    data: [40, 25, 20, 15],
+                    backgroundColor: ['#D93025', '#FFC107', '#202124', '#1E8E3E'],
+                    borderWidth: 0
+                }]
+            },
+            options: commonOptions
+        });
+
+        // 2. Estatus de Pedimentos (Pie)
+        new Chart(document.getElementById('chartPedimentos'), {
+            type: 'pie',
+            data: {
+                labels: ['Finalizado', 'En Proceso', 'Bloqueado', 'Solicitado'],
+                datasets: [{
+                    data: [50, 20, 10, 20],
+                    backgroundColor: ['#1E8E3E', '#1A73E8', '#D93025', '#BDC1C6'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: commonOptions
+        });
+
+        // 3. Calidad por Fase (Barra Horizontal)
+        new Chart(document.getElementById('chartFase'), {
+            type: 'bar',
+            data: {
+                labels: ['Extracción', 'Transformación', 'Conciliación'],
+                datasets: [{
+                    label: 'Incidencias Detectadas',
+                    data: [85, 42, 31],
+                    backgroundColor: '#1A73E8',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                ...commonOptions,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { x: { grid: { display: false } }, y: { grid: { display: false } } }
+            }
+        });
+    </script>
+</body>
+</html>

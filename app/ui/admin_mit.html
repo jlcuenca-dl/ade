@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADE Core | Enterprise Console</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ade-blue: #1976D2;
+            --ade-dark: #232F3E;
+            --ade-bg: #F8F9FA;
+            --ade-border: #E0E0E0;
+        }
+
+        body { font-family: 'Roboto', sans-serif; background-color: var(--ade-bg); font-size: 13px; overflow-x: hidden; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { position: fixed; top: 0; bottom: 0; left: 0; width: 250px; background-color: var(--ade-dark); z-index: 1000; padding-top: 20px; transition: all 0.3s; }
+        .sidebar-brand { padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .nav-link { color: rgba(255,255,255,0.7); padding: 12px 20px; display: flex; align-items: center; text-decoration: none; transition: 0.2s; border-left: 4px solid transparent; cursor: pointer; }
+        .nav-link:hover { color: white; background: rgba(255,255,255,0.05); }
+        .nav-link.active { background: rgba(25, 118, 210, 0.2); color: white; border-left-color: var(--ade-blue); }
+        .nav-link i { width: 25px; text-align: center; margin-right: 10px; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { margin-left: 250px; padding: 30px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        
+        /* --- CARDS & PANELS --- */
+        .card-panel { background: white; border: 1px solid var(--ade-border); border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); overflow: hidden; }
+        
+        /* --- FILTERS BAR --- */
+        .filters-bar { padding: 15px 20px; background: #fff; border-bottom: 1px solid var(--ade-border); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .form-select-sm, .form-control-sm { border-radius: 4px; border-color: #ccc; max-width: 140px; }
+
+        /* --- TABLE --- */
+        .table-responsive { min-height: 400px; }
+        .table-ade { width: 100%; margin-bottom: 0; white-space: nowrap; }
+        .table-ade thead th { background: #f1f3f4; color: #5f6368; font-weight: 600; text-transform: uppercase; font-size: 11px; padding: 12px; border-bottom: 2px solid #ddd; }
+        .table-ade tbody td { padding: 10px 12px; vertical-align: middle; border-bottom: 1px solid #eee; color: #333; }
+        .table-ade tbody tr:hover { background-color: #f8faff; cursor: pointer; }
+
+        /* --- BADGES --- */
+        .badge-ade { padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; }
+        .bg-alta { background-color: #FCE8E6; color: #C5221F; border: 1px solid #fad2cf; }
+        .bg-media { background-color: #FEF7E0; color: #B06000; border: 1px solid #fce8b2; }
+        .bg-baja { background-color: #E6F4EA; color: #137333; border: 1px solid #ceead6; }
+        .bg-ok { background-color: #E6F4EA; color: #1E8E3E; }
+        .bg-err { background-color: #fce8e6; color: #d93025; }
+
+        /* --- OFFCANVAS (RIGHT PANEL) --- */
+        .offcanvas-end { width: 500px !important; border-left: 1px solid #ddd; }
+        .offcanvas-header { background: var(--ade-blue); color: white; }
+        .form-label { font-weight: 500; font-size: 12px; color: #555; margin-bottom: 4px; margin-top: 10px; }
+        .form-control, .form-select { font-size: 13px; }
+        .section-title { font-size: 11px; text-transform: uppercase; color: #888; font-weight: 700; margin: 20px 0 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+
+        /* --- LOADING --- */
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    </style>
+</head>
+<body>
+
+    <div id="loading-overlay">
+        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+        <h5 class="text-secondary fw-light">Cargando Ecosistema ADE...</h5>
+    </div>
+
+    <nav class="sidebar">
+        <div class="sidebar-brand">
+            <h4 class="text-white mb-0"><i class="fas fa-layer-group me-2"></i>ADE Core</h4>
+            <small class="text-white-50">Enterprise v6.0</small>
+        </div>
+        <div class="nav flex-column">
+            <a class="nav-link active" onclick="switchModule('mit', this)">
+                <i class="fas fa-microchip"></i> Motor MIT
+            </a>
+            <a class="nav-link" onclick="switchModule('pedimentos', this)">
+                <i class="fas fa-tasks"></i> Pedimentos
+            </a>
+            <a class="nav-link" onclick="switchModule('usuarios', this)">
+                <i class="fas fa-users-cog"></i> Usuarios
+            </a>
+            <hr class="border-secondary mx-3">
+            <a class="nav-link text-warning" href="#" onclick="alert('En desarrollo Sprint 6')">
+                <i class="fas fa-chart-line"></i> Dashboard SESAS
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        
+        <div class="page-header">
+            <div>
+                <h3 class="mb-0" id="page-title">Motor de Reglas MIT</h3>
+                <small class="text-muted" id="page-desc">Orquestador y Generador de Calidad de Datos</small>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-success btn-sm" onclick="exportarCSV()">
+                    <i class="fas fa-file-csv me-2"></i>Exportar
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="abrirAlta()">
+                    <i class="fas fa-plus me-2"></i><span id="btn-alta-label">Nueva Regla</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-panel">
+            
+            <div class="filters-bar">
+                <div class="input-group input-group-sm" style="width: 200px;">
+                    <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="search-general" placeholder="Buscar ID, Texto..." onkeyup="aplicarFiltros()">
+                </div>
+
+                <select class="form-select form-select-sm" id="filtro-linea" onchange="aplicarFiltros()">
+                    <option value="">Línea Negocio</option>
+                    <option value="Personas">Personas</option>
+                    <option value="Daños">Daños</option>
+                    <option value="Autos">Autos</option>
+                </select>
+
+                <select class="form-select form-select-sm" id="filtro-ramo" onchange="aplicarFiltros()">
+                    <option value="">Ramo</option>
+                    <option value="VIDA">Vida</option>
+                    <option value="GMM">Gastos Médicos</option>
+                    <option value="AUTOS">Autos</option>
+                    <option value="DAÑOS">Daños</option>
+                </select>
+
+                <input type="text" class="form-control form-control-sm" id="filtro-subramo" placeholder="Subramo" onkeyup="aplicarFiltros()">
+                <input type="text" class="form-control form-control-sm" id="filtro-producto" placeholder="Clave Prod." onkeyup="aplicarFiltros()">
+
+                <select class="form-select form-select-sm" id="filtro-status" onchange="aplicarFiltros()">
+                    <option value="">Estatus</option>
+                    <option value="ACTIVO">Activo</option>
+                    <option value="INACTIVO">Inactivo</option>
+                    <option value="SOLICITADO">Solicitado (Ped)</option>
+                </select>
+
+                <select class="form-select form-select-sm d-none" id="filtro-severidad" onchange="aplicarFiltros()">
+                    <option value="">Severidad</option>
+                    <option value="ALTA">Alta</option>
+                    <option value="MEDIA">Media</option>
+                    <option value="BAJA">Baja</option>
+                </select>
+
+                <div class="ms-auto text-muted small fw-bold" id="contador-registros">0 registros</div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-ade table-hover">
+                    <thead id="tabla-head">
+                        </thead>
+                    <tbody id="tabla-body">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
+                <div class="small text-muted">
+                    Filas por página:
+                    <select class="form-select form-select-sm d-inline-block w-auto ms-1" id="rows-per-page" onchange="cambiarPaginacion()">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0" id="pagination-controls">
+                        </ul>
+                </nav>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offMIT">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title"><i class="fas fa-code-branch me-2"></i>Regla de Negocio</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form id="formMIT" onsubmit="guardarRegistro(event)">
+                
+                <div class="section-title">Identificación</div>
+                <label class="form-label">ID Incidencia (Único)</label>
+                <input type="text" class="form-control" name="id_incidencia" id="mit_id" placeholder="Ej: VAL-001" required>
+                
+                <label class="form-label">Función Técnica</label>
+                <input type="text" class="form-control font-monospace" name="nombre_funcion" id="mit_funcion" placeholder="fn_valida_rfc" required>
+
+                <div class="section-title">Dimensiones de Negocio</div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">Línea</label>
+                        <select class="form-select" name="linea_producto" id="mit_linea">
+                            <option value="Personas">Personas</option>
+                            <option value="Daños">Daños</option>
+                            <option value="Autos">Autos</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Ramo</label>
+                        <select class="form-select" name="ramo" id="mit_ramo">
+                            <option value="VIDA">Vida</option>
+                            <option value="GMM">GMM</option>
+                            <option value="AUTOS">Autos</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Subramo</label>
+                        <input type="text" class="form-control" name="subramo" id="mit_subramo">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Clave Prod</label>
+                        <input type="text" class="form-control" name="cve_producto" id="mit_prod">
+                    </div>
+                </div>
+
+                <div class="section-title">Control de Calidad</div>
+                <label class="form-label">Descripción</label>
+                <textarea class="form-control" name="descripcion" id="mit_desc" rows="2"></textarea>
+
+                <label class="form-label">Severidad</label>
+                <select class="form-select" name="severidad" id="mit_sev" required>
+                    <option value="ALTA">Alta (Bloqueo)</option>
+                    <option value="MEDIA">Media (Alerta)</option>
+                    <option value="BAJA">Baja (Info)</option>
+                    <option value="WARNING">Warning</option>
+                </select>
+
+                <label class="form-label">Etiquetas (Tags)</label>
+                <input type="text" class="form-control" name="tags_config" id="mit_tags" placeholder="#SAT, #PLD">
+
+                <div class="form-check form-switch mt-4">
+                    <input class="form-check-input" type="checkbox" name="activo" id="mit_activo" checked>
+                    <label class="form-check-label">Regla Activa</label>
+                </div>
+
+                <hr>
+                <button type="submit" class="btn btn-primary w-100">Guardar</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offPedimentos">
+        <div class="offcanvas-header bg-dark">
+            <h5 class="offcanvas-title text-white"><i class="fas fa-clipboard-list me-2"></i>Pedimento Información</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form id="formPedimentos" onsubmit="guardarRegistro(event)">
+                
+                <div class="section-title">Identidad del Requerimiento</div>
+                <div class="row g-2">
+                    <div class="col-8">
+                        <label class="form-label">ID Pedimento</label>
+                        <input type="text" class="form-control" name="id_pedimento" id="ped_id" value="PED-2026-" required>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">Consecutivo</label>
+                        <input type="number" class="form-control" name="consecutivo" id="ped_cons" value="1">
+                    </div>
+                </div>
+                
+                <label class="form-label">Pedimento Padre (Opcional)</label>
+                <input type="text" class="form-control" name="id_pedimento_padre" id="ped_padre" placeholder="ID Padre">
+
+                <label class="form-label">Título / Descripción</label>
+                <input type="text" class="form-control" name="titulo" id="ped_titulo" required>
+
+                <div class="section-title">Asignación</div>
+                <label class="form-label">Responsable (ID Usuario)</label>
+                <input type="text" class="form-control" name="id_responsable" id="ped_resp" placeholder="@usuario">
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">Línea</label>
+                        <select class="form-select" name="linea_negocio" id="ped_linea">
+                            <option value="Personas">Personas</option>
+                            <option value="Daños">Daños</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Ramo</label>
+                        <select class="form-select" name="ramo" id="ped_ramo">
+                            <option value="VIDA">Vida</option>
+                            <option value="AUTOS">Autos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section-title">Semáforos (Fechas)</div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">Inicio</label>
+                        <input type="date" class="form-control" name="fec_inicio" id="ped_ini">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Límite (Rojo)</label>
+                        <input type="date" class="form-control" name="fec_limite" id="ped_fin">
+                    </div>
+                </div>
+
+                <label class="form-label">Tags</label>
+                <input type="text" class="form-control" name="tags_pedimento" id="ped_tags">
+
+                <hr>
+                <button type="submit" class="btn btn-dark w-100">Guardar Pedimento</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offUsuarios">
+        <div class="offcanvas-header bg-success">
+            <h5 class="offcanvas-title text-white"><i class="fas fa-user-shield me-2"></i>Perfil Usuario</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form id="formUsuarios" onsubmit="guardarRegistro(event)">
+                
+                <div class="section-title">Identidad</div>
+                <label class="form-label">ID Usuario (@)</label>
+                <input type="text" class="form-control" name="id_usuario" id="usr_id" required>
+                
+                <label class="form-label">Nombre Completo</label>
+                <input type="text" class="form-control" name="nombre_completo" id="usr_nombre" required>
+
+                <label class="form-label">Correo Electrónico</label>
+                <input type="email" class="form-control" name="correo_electronico" id="usr_mail">
+
+                <div class="section-title">Jerarquía</div>
+                <label class="form-label">Rol</label>
+                <select class="form-select" name="rol_jerarquico" id="usr_rol">
+                    <option value="ANALISTA">Analista</option>
+                    <option value="GERENTE">Gerente</option>
+                    <option value="DIRECTOR">Director</option>
+                </select>
+
+                <label class="form-label">Reporta A (Jefe)</label>
+                <input type="text" class="form-control" name="id_reporta_a" id="usr_jefe">
+
+                <div class="section-title">Responsabilidad Principal</div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">Línea</label>
+                        <select class="form-select" name="linea_negocio" id="usr_linea">
+                            <option value="Personas">Personas</option>
+                            <option value="Daños">Daños</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Ramo</label>
+                        <input type="text" class="form-control" name="ramo" id="usr_ramo">
+                    </div>
+                </div>
+
+                <div class="form-check form-switch mt-4">
+                    <input class="form-check-input" type="checkbox" name="activo" id="usr_activo" checked>
+                    <label class="form-check-label">Usuario Activo</label>
+                </div>
+
+                <hr>
+                <button type="submit" class="btn btn-success w-100">Guardar Usuario</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // --- CONSTANTES ---
+        const API_URL = "http://127.0.0.1:8000/api";
+        const STATE = {
+            module: 'mit', // mit, usuarios, pedimentos
+            data: [],
+            filtered: [],
+            page: 1,
+            rows: 10,
+            editingId: null
+        };
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simular carga inicial
+            setTimeout(() => {
+                document.getElementById('loading-overlay').style.display = 'none';
+                switchModule('mit');
+            }, 500);
+        });
+
+        // --- SWITCHER DE MÓDULOS ---
+        function switchModule(mod, element) {
+            STATE.module = mod;
+            STATE.page = 1;
+            STATE.editingId = null;
+
+            // Actualizar UI Sidebar
+            if (element) {
+                document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+                element.classList.add('active');
+            }
+
+            // Configurar Textos Header
+            const headerInfo = {
+                'mit': { title: 'Motor de Reglas MIT', desc: 'Catálogo de Validaciones y Calidad', btn: 'Nueva Regla' },
+                'usuarios': { title: 'Directorio de Usuarios', desc: 'Gestión de Accesos y Roles', btn: 'Nuevo Usuario' },
+                'pedimentos': { title: 'Torre de Control', desc: 'Gestor de Pedimentos de Información', btn: 'Nuevo Pedimento' }
+            };
+            document.getElementById('page-title').innerText = headerInfo[mod].title;
+            document.getElementById('page-desc').innerText = headerInfo[mod].desc;
+            document.getElementById('btn-alta-label').innerText = headerInfo[mod].btn;
+
+            // Mostrar/Ocultar Filtros Específicos
+            const severidadFilter = document.getElementById('filtro-severidad');
+            if (mod === 'mit') severidadFilter.classList.remove('d-none');
+            else severidadFilter.classList.add('d-none');
+
+            // Cargar Datos
+            cargarDatos();
+        }
+
+        // --- CARGA DE DATOS (API) ---
+        async function cargarDatos() {
+            let endpoint = "";
+            if (STATE.module === 'mit') endpoint = "/reglas";
+            if (STATE.module === 'usuarios') endpoint = "/usuarios/buscar";
+            if (STATE.module === 'pedimentos') endpoint = "/pedimentos";
+
+            // Recoger valores de filtros para enviarlos (opcional) o filtrar en cliente
+            try {
+                const res = await fetch(API_URL + endpoint);
+                if (!res.ok) throw new Error("Error en API");
+                const data = await res.json();
+                
+                STATE.data = data;
+                aplicarFiltros(); // Esto dispara el renderTable
+            } catch (e) {
+                console.error(e);
+                Swal.fire("Error", "No hay conexión con el servidor", "error");
+            }
+        }
+
+        // --- FILTRADO EN CLIENTE ---
+        function aplicarFiltros() {
+            const q = document.getElementById('search-general').value.toLowerCase();
+            const fLinea = document.getElementById('filtro-linea').value;
+            const fRamo = document.getElementById('filtro-ramo').value;
+            const fSub = document.getElementById('filtro-subramo').value.toLowerCase();
+            const fProd = document.getElementById('filtro-producto').value.toLowerCase();
+            const fStatus = document.getElementById('filtro-status').value;
+            const fSev = document.getElementById('filtro-severidad').value;
+
+            STATE.filtered = STATE.data.filter(item => {
+                // 1. Busqueda General (Texto)
+                const rawString = JSON.stringify(item).toLowerCase();
+                if (!rawString.includes(q)) return false;
+
+                // 2. Mapeo de Campos según Módulo (Para que los filtros funcionen)
+                let itemLinea = "", itemRamo = "", itemSub = "", itemProd = "", itemStatus = "", itemSev = "";
+
+                if (STATE.module === 'mit') {
+                    itemLinea = item.linea_producto || "";
+                    itemRamo = item.ramo || "";
+                    itemSub = item.subramo || "";
+                    itemProd = item.cve_producto || "";
+                    itemStatus = item.activo ? "ACTIVO" : "INACTIVO";
+                    itemSev = item.severidad || "";
+                } else if (STATE.module === 'pedimentos') {
+                    itemLinea = item.linea_negocio || "";
+                    itemRamo = item.ramo || "";
+                    itemSub = item.subramo || "";
+                    itemProd = item.cve_producto || "";
+                    itemStatus = item.status || (item.activo ? "ACTIVO" : "INACTIVO");
+                } else if (STATE.module === 'usuarios') {
+                    itemLinea = item.linea_negocio || "";
+                    itemRamo = item.ramo || "";
+                    itemStatus = item.activo ? "ACTIVO" : "INACTIVO";
+                }
+
+                // 3. Comparaciones
+                if (fLinea && itemLinea !== fLinea) return false;
+                if (fRamo && itemRamo !== fRamo) return false;
+                if (fSub && !itemSub.toLowerCase().includes(fSub)) return false;
+                if (fProd && !itemProd.toLowerCase().includes(fProd)) return false;
+                if (fStatus && itemStatus !== fStatus) return false;
+                if (STATE.module === 'mit' && fSev && itemSev !== fSev) return false;
+
+                return true;
+            });
+
+            // Resetear página y renderizar
+            STATE.page = 1;
+            document.getElementById('contador-registros').innerText = `${STATE.filtered.length} registros`;
+            renderTable();
+        }
+
+        // --- RENDERIZADO DE TABLA ---
+        function renderTable() {
+            const thead = document.getElementById('tabla-head');
+            const tbody = document.getElementById('tabla-body');
+            
+            // 1. Definir Columnas
+            let headers = "";
+            if (STATE.module === 'mit') {
+                headers = `<tr><th>ID</th><th>Función</th><th>Severidad</th><th>Ramo</th><th>Subramo</th><th>Línea</th><th>Producto</th><th>Status</th><th class="text-end">Acción</th></tr>`;
+            } else if (STATE.module === 'pedimentos') {
+                headers = `<tr><th>ID Pedimento</th><th>Padre</th><th>Título</th><th>Responsable</th><th>Ramo</th><th>Status</th><th>Inicio</th><th>Límite</th><th class="text-end">Acción</th></tr>`;
+            } else if (STATE.module === 'usuarios') {
+                headers = `<tr><th>ID Usuario</th><th>Nombre</th><th>Rol</th><th>Reporta A</th><th>Ramo</th><th>Línea</th><th>Status</th><th class="text-end">Acción</th></tr>`;
+            }
+            thead.innerHTML = headers;
+
+            // 2. Paginación
+            const start = (STATE.page - 1) * STATE.rows;
+            const end = start + parseInt(STATE.rows);
+            const pageData = STATE.filtered.slice(start, end);
+
+            // 3. Filas
+            tbody.innerHTML = "";
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-muted">No se encontraron datos</td></tr>`;
+                renderPaginationControls();
+                return;
+            }
+
+            pageData.forEach(row => {
+                let tr = document.createElement('tr');
+                let html = "";
+
+                // USO EXTENSIVO DE || '-' PARA EVITAR CRASHES POR NULL
+                if (STATE.module === 'mit') {
+                    const sevBadge = row.severidad === 'ALTA' ? 'bg-alta' : (row.severidad === 'MEDIA' ? 'bg-media' : 'bg-baja');
+                    const stBadge = row.activo ? '<span class="badge-ade bg-ok">ACTIVO</span>' : '<span class="badge-ade bg-err">INACTIVO</span>';
+                    
+                    html = `
+                        <td class="fw-bold text-primary">${row.id_incidencia || '-'}</td>
+                        <td><code>${row.nombre_funcion || '-'}</code></td>
+                        <td><span class="badge-ade ${sevBadge}">${row.severidad || '-'}</span></td>
+                        <td>${row.ramo || '-'}</td>
+                        <td>${row.subramo || '-'}</td>
+                        <td>${row.linea_producto || '-'}</td>
+                        <td>${row.cve_producto || '-'}</td>
+                        <td>${stBadge}</td>
+                    `;
+                } else if (STATE.module === 'pedimentos') {
+                    const stBadge = `<span class="badge-ade bg-media">${row.status || 'SOLICITADO'}</span>`;
+                    html = `
+                        <td class="fw-bold">${row.id_pedimento || '-'}</td>
+                        <td>${row.id_pedimento_padre || '<span class="text-muted small">Maestro</span>'}</td>
+                        <td>${row.titulo || '-'}</td>
+                        <td>${row.id_responsable || '-'}</td>
+                        <td>${row.ramo || '-'}</td>
+                        <td>${stBadge}</td>
+                        <td>${row.fec_inicio || '-'}</td>
+                        <td>${row.fec_limite || '-'}</td>
+                    `;
+                } else if (STATE.module === 'usuarios') {
+                    const stBadge = row.activo ? '<span class="badge-ade bg-ok">ACTIVO</span>' : '<span class="badge-ade bg-err">BAJA</span>';
+                    html = `
+                        <td class="fw-bold">${row.id_usuario || '-'}</td>
+                        <td>${row.nombre_completo || '-'}</td>
+                        <td>${row.rol_jerarquico || '-'}</td>
+                        <td>${row.id_reporta_a || '-'}</td>
+                        <td>${row.ramo || '-'}</td>
+                        <td>${row.linea_negocio || '-'}</td>
+                        <td>${stBadge}</td>
+                    `;
+                }
+
+                // Botones Acción
+                const id = row.id_incidencia || row.id_pedimento || row.id_usuario;
+                // Importante: encodeURIComponent para evitar problemas con strings en onclick
+                const rowStr = encodeURIComponent(JSON.stringify(row)); 
+                
+                html += `
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-light border me-1" onclick="editarRegistro('${rowStr}')"><i class="fas fa-edit text-primary"></i></button>
+                        <button class="btn btn-sm btn-light border" onclick="bajaRegistro('${id}')"><i class="fas fa-trash text-danger"></i></button>
+                    </td>
+                `;
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+
+            renderPaginationControls();
+        }
+
+        // --- PAGINACION ---
+        function cambiarPaginacion() {
+            STATE.rows = document.getElementById('rows-per-page').value;
+            STATE.page = 1;
+            renderTable();
+        }
+
+        function renderPaginationControls() {
+            const totalPages = Math.ceil(STATE.filtered.length / STATE.rows) || 1;
+            const container = document.getElementById('pagination-controls');
+            let html = "";
+            
+            // Prev
+            html += `<li class="page-item ${STATE.page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="setPage(${STATE.page - 1})">Ant</a></li>`;
+            // Info
+            html += `<li class="page-item disabled"><span class="page-link">${STATE.page} / ${totalPages}</span></li>`;
+            // Next
+            html += `<li class="page-item ${STATE.page >= totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="setPage(${STATE.page + 1})">Sig</a></li>`;
+            
+            container.innerHTML = html;
+        }
+
+        function setPage(p) {
+            if (p < 1) return;
+            STATE.page = p;
+            renderTable();
+        }
+
+        // --- ABRIR MODAL (ALTA) ---
+        let bsOffcanvas = null;
+        function abrirAlta() {
+            STATE.editingId = null;
+            let modalId = "";
+            if (STATE.module === 'mit') modalId = 'offMIT';
+            if (STATE.module === 'usuarios') modalId = 'offUsuarios';
+            if (STATE.module === 'pedimentos') modalId = 'offPedimentos';
+
+            const form = document.getElementById(STATE.module === 'mit' ? 'formMIT' : STATE.module === 'usuarios' ? 'formUsuarios' : 'formPedimentos');
+            form.reset(); // Limpiar campos previos
+            
+            // Desbloquear ID si estaba bloqueado por edición
+            const idInput = form.querySelector('input[name^="id_"]');
+            if(idInput) { idInput.readOnly = false; idInput.classList.remove('bg-light'); }
+
+            const el = document.getElementById(modalId);
+            bsOffcanvas = new bootstrap.Offcanvas(el);
+            bsOffcanvas.show();
+        }
+
+        // --- ABRIR MODAL (EDICION) ---
+        function editarRegistro(rowEncoded) {
+            const row = JSON.parse(decodeURIComponent(rowEncoded));
+            
+            // Determinar ID y Módulo
+            let modalId = "", formId = "", idField = "";
+            if (STATE.module === 'mit') { modalId = 'offMIT'; formId = 'formMIT'; idField = 'id_incidencia'; STATE.editingId = row.id_incidencia; }
+            if (STATE.module === 'usuarios') { modalId = 'offUsuarios'; formId = 'formUsuarios'; idField = 'id_usuario'; STATE.editingId = row.id_usuario; }
+            if (STATE.module === 'pedimentos') { modalId = 'offPedimentos'; formId = 'formPedimentos'; idField = 'id_pedimento'; STATE.editingId = row.id_pedimento; }
+
+            const form = document.getElementById(formId);
+            const inputs = form.querySelectorAll('input, select, textarea');
+
+            // Llenar campos automáticamente
+            inputs.forEach(input => {
+                const name = input.name;
+                if (row[name] !== undefined) {
+                    if (input.type === 'checkbox') input.checked = row[name];
+                    else input.value = row[name];
+                }
+            });
+
+            // Bloquear ID
+            const idInput = form.querySelector(`input[name="${idField}"]`);
+            if(idInput) { idInput.readOnly = true; idInput.classList.add('bg-light'); }
+
+            const el = document.getElementById(modalId);
+            bsOffcanvas = new bootstrap.Offcanvas(el);
+            bsOffcanvas.show();
+        }
+
+        // --- GUARDAR ---
+        async function guardarRegistro(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            // Convertir checkbox a bool
+            data.activo = !!data.activo;
+
+            let endpoint = "";
+            let method = STATE.editingId ? 'PUT' : 'POST';
+            
+            if (STATE.module === 'mit') endpoint = "/reglas";
+            if (STATE.module === 'usuarios') endpoint = STATE.editingId ? `/usuarios/${STATE.editingId}` : "/usuarios/guardar";
+            if (STATE.module === 'pedimentos') endpoint = STATE.editingId ? `/pedimentos/${STATE.editingId}` : "/pedimentos";
+
+            // Para PUT de Reglas, concatenar ID si la API lo requiere (o usar el body)
+            if (STATE.module === 'mit' && method === 'PUT') endpoint = "/reglas"; // Reglas usa POST para upsert en este diseño, o ajustar API
+
+            try {
+                const res = await fetch(API_URL + endpoint, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    Swal.fire("Guardado", "Registro procesado con éxito", "success");
+                    bsOffcanvas.hide();
+                    cargarDatos();
+                } else {
+                    const err = await res.json();
+                    throw new Error(err.detail || "Error desconocido");
+                }
+            } catch (err) {
+                Swal.fire("Error", "No se pudo guardar: " + err.message, "error");
+            }
+        }
+
+        // --- BAJA ---
+        async function bajaRegistro(id) {
+            const result = await Swal.fire({
+                title: '¿Dar de baja?',
+                text: "El registro pasará a inactivo/cancelado.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, borrar',
+                confirmButtonColor: '#d33'
+            });
+
+            if (result.isConfirmed) {
+                let endpoint = "";
+                if (STATE.module === 'mit') endpoint = `/reglas/${id}`;
+                if (STATE.module === 'usuarios') endpoint = `/usuarios/${id}`;
+                if (STATE.module === 'pedimentos') endpoint = `/pedimentos/${id}`;
+
+                try {
+                    await fetch(API_URL + endpoint, { method: 'DELETE' });
+                    Swal.fire("Eliminado", "Baja exitosa", "success");
+                    cargarDatos();
+                } catch (e) {
+                    Swal.fire("Error", "Fallo al eliminar", "error");
+                }
+            }
+        }
+
+        // --- EXPORTAR CSV ---
+        function exportarCSV() {
+            if (STATE.filtered.length === 0) return Swal.fire("Aviso", "Nada que exportar", "info");
+            
+            const items = STATE.filtered;
+            const header = Object.keys(items[0]);
+            let csv = header.join(",") + "\n";
+            
+            items.forEach(row => {
+                const values = header.map(fieldName => {
+                    let val = row[fieldName] === null || row[fieldName] === undefined ? "" : row[fieldName];
+                    return JSON.stringify(val);
+                });
+                csv += values.join(",") + "\n";
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `reporte_${STATE.module}.csv`;
+            a.click();
+        }
+
+    </script>
+</body>
+</html>

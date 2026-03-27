@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría de Calidad ADE | Gestor de Incidencias</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================================================
+           SISTEMA DE DISEÑO ADE - ESTILO ORGÁNICO MODERNO (CALIDAD)
+           ========================================================================= */
+        :root {
+            --ade-red: #D93025;
+            --ade-red-soft: #FCE8E6;
+            --ade-dark: #202124;
+            --ade-gray: #5F6368;
+            --ade-border: #DADCE0;
+            --ade-bg: #F8F9FA;
+            --ade-success: #1E8E3E;
+            --ade-warning: #F9AB00;
+        }
+
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: var(--ade-bg); 
+            padding: 20px; 
+            font-size: 13px; 
+            height: 100vh; 
+            overflow: hidden; 
+            box-sizing: border-box;
+        }
+
+        /* HEADER INSTITUCIONAL */
+        .header-mod { 
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px 10px 0 0;
+            border-bottom: 4px solid var(--ade-red); 
+            margin-bottom: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .header-title h5 { margin: 0; font-weight: 700; color: var(--ade-dark); letter-spacing: -0.5px; }
+        .header-title small { font-size: 10px; text-transform: uppercase; color: var(--ade-gray); font-weight: 500; }
+
+        /* BARRA DE FILTROS AVANZADA */
+        .filter-area {
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid var(--ade-border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .filter-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+        .filter-group { display: flex; flex-direction: column; }
+        .filter-label { font-size: 9px; font-weight: 800; text-transform: uppercase; color: #70757a; margin-bottom: 5px; letter-spacing: 0.3px; }
+        .form-control-sm, .form-select-sm { font-size: 11px; height: 32px; border-radius: 5px; border: 1px solid #ced4da; }
+
+        /* CONTENEDOR DE TABLA */
+        .main-card { 
+            background: white; 
+            border: 1px solid var(--ade-border); 
+            border-radius: 10px; 
+            height: calc(100vh - 240px); 
+            display: flex; 
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .table-responsive { flex: 1; overflow-y: auto; scroll-behavior: smooth; }
+        .table-inc { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        
+        .table-inc th { 
+            background: #F1F3F4; font-size: 10px; text-transform: uppercase; color: #5F6368; 
+            padding: 12px 10px; position: sticky; top: 0; z-index: 20; 
+            border-bottom: 2px solid var(--ade-border);
+        }
+        .table-inc td { 
+            padding: 10px 12px; border-bottom: 1px solid #f1f3f4; vertical-align: middle;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .table-inc tbody tr:hover { background-color: var(--ade-red-soft) !important; cursor: pointer; }
+
+        /* ESTILOS DE SEVERIDAD */
+        .badge-sev { font-size: 9px; padding: 4px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; color: white; }
+        .bg-alta { background-color: var(--ade-red); }
+        .bg-media { background-color: var(--ade-warning); }
+        .bg-baja { background-color: var(--ade-success); }
+        .bg-adv { background-color: #9AA0A6; }
+
+        /* OFFCANVAS Y FORMULARIO */
+        .offcanvas { width: 720px !important; border-left: 10px solid var(--ade-red); }
+        .offcanvas-header { background: var(--ade-red); color: white; padding: 15px 25px; }
+        .form-section-title { 
+            font-size: 11px; text-transform: uppercase; color: var(--ade-red); 
+            border-bottom: 2px solid var(--ade-red); margin: 25px 0 12px 0; 
+            padding-bottom: 4px; font-weight: 800; letter-spacing: 0.6px;
+        }
+        .form-label { font-size: 11px; font-weight: 700; color: #444; margin-bottom: 3px; }
+
+        /* COMPARADOR DE VALORES */
+        .comparison-area { display: flex; gap: 15px; margin-top: 10px; background: #fafafa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        .val-card { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; position: relative; }
+        .val-title { font-size: 9px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; display: block; }
+        .val-bad { background: var(--ade-red-soft); border-color: #fad2cf; color: #a52825; }
+        .val-good { background: #e6f4ea; border-color: #c3e6cb; color: #0d652d; }
+        .val-input { background: transparent; border: 0; width: 100%; font-family: 'Courier New', monospace; font-weight: 700; font-size: 13px; outline: none; }
+        .arrow-sep { align-self: center; color: #BDC1C6; font-size: 24px; }
+
+        /* SCROLLBARS CUSTOM */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #999; }
+    </style>
+</head>
+<body>
+
+    <div class="header-mod shadow-sm">
+        <div class="header-title">
+            <h5><i class="fas fa-microscope me-2"></i>Gestor de Incidencias ADE</h5>
+            <small>Auditoría de Calidad | Seguros Atlas | Proceso MIT</small>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-success btn-sm fw-bold px-3" onclick="exportarCSVTotal()">
+                <i class="fas fa-file-csv me-1"></i> Exportar Base Total
+            </button>
+            <button class="btn btn-outline-dark btn-sm fw-bold px-3" onclick="cargarDatos()">
+                <i class="fas fa-sync-alt me-1"></i> Sincronizar
+            </button>
+            <button class="btn btn-danger btn-sm fw-bold shadow-sm px-3" onclick="abrirAlta()">
+                <i class="fas fa-plus-circle me-1"></i> Registrar Hallazgo Manual
+            </button>
+        </div>
+    </div>
+
+    <div class="filter-area shadow-sm">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label class="filter-label">Búsqueda Global (ID, Póliza, Tags, Error)</label>
+                <input type="text" id="f_global" class="form-control form-control-sm" style="width: 260px;" placeholder="Buscar en toda la bitácora..." onkeyup="aplicarFiltros()">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Severidad</label>
+                <select id="f_sev" class="form-select form-select-sm" style="width: 120px;" onchange="aplicarFiltros()">
+                    <option value="">Todas...</option>
+                    <option value="ALTA">Alta (Bloqueo)</option>
+                    <option value="MEDIA">Media</option>
+                    <option value="BAJA">Baja</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Estado Ciclo de Vida</label>
+                <select id="f_status" class="form-select form-select-sm" style="width: 130px;" onchange="aplicarFiltros()">
+                    <option value="">Cualquiera...</option>
+                    <option value="DETECTADA">Detectada</option>
+                    <option value="EN_PEDIMENTO">En Pedimento</option>
+                    <option value="ATENDIDA">Atendida</option>
+                    <option value="CERRADA-REPROCESO">Cerrada</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Línea de Negocio</label>
+                <select id="f_linea" class="form-select form-select-sm" style="width: 110px;" onchange="aplicarFiltros()">
+                    <option value="">Todas...</option>
+                    <option value="Personas">Personas</option>
+                    <option value="Daños">Daños</option>
+                    <option value="Autos">Autos</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Póliza SIISA (Clave NK)</label>
+                <input type="text" id="f_pol" class="form-control form-control-sm" style="width: 140px;" placeholder="Ej: 01-123..." onkeyup="aplicarFiltros()">
+            </div>
+            <div class="ms-auto pt-4">
+                <span class="badge bg-dark px-3 py-2" id="contador">0 registros</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-inc mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 160px;">ID Bitácora</th>
+                        <th style="width: 100px;">Severidad</th>
+                        <th style="width: 160px;">Póliza Natural</th>
+                        <th>Hallazgo Técnico y Etiquetas de Control</th>
+                        <th style="width: 160px;">Estado / Status</th>
+                        <th style="width: 100px;">Antigüedad</th>
+                        <th style="width: 60px;" class="text-center">Edit</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offInc">
+        <div class="offcanvas-header shadow-sm">
+            <h5 class="offcanvas-title fw-bold" id="offTitle">Auditoría de Calidad de Datos</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form id="formInc" onsubmit="guardar(event)">
+                
+                <div class="form-section-title" style="margin-top:0">1. Identificación y Evaluación de Riesgo</div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">ID Registro Firestore</label>
+                        <input type="text" class="form-control fw-bold bg-light" id="in_id" readonly>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Severidad del Hallazgo</label>
+                        <select class="form-select fw-bold" id="in_sev" required>
+                            <option value="ALTA">ALTA (Bloqueo Reporteo)</option>
+                            <option value="MEDIA">MEDIA</option>
+                            <option value="BAJA">BAJA</option>
+                            <option value="ADVERTENCIA">ADVERTENCIA</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Clave Póliza SIISA (NK)</label>
+                        <input type="text" class="form-control font-monospace fw-bold" id="in_poliza" required placeholder="000-000-0000000-00-00">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Descripción Técnica del Error</label>
+                        <textarea class="form-control" id="in_desc" rows="3" required placeholder="Explique la inconsistencia detectada por el motor..."></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <label class="form-label">Análisis Comparativo (Sugerencia de Saneamiento)</label>
+                    <div class="comparison-area shadow-sm">
+                        <div class="val-card val-bad">
+                            <span class="val-title text-danger"><i class="fas fa-times-circle me-1"></i> Valor SIISA (Origen)</span>
+                            <input type="text" class="val-input text-danger" id="in_val_bad" placeholder="Dato erróneo">
+                        </div>
+                        <div class="arrow-sep"><i class="fas fa-long-arrow-alt-right"></i></div>
+                        <div class="val-card val-good">
+                            <span class="val-title text-success"><i class="fas fa-check-circle me-1"></i> Sugerencia ADE</span>
+                            <input type="text" class="val-input text-success" id="in_val_good" placeholder="Dato esperado">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section-title">2. Ciclo de Vida y Trazabilidad de Status</div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">Estado Operativo</label>
+                        <select class="form-select fw-bold" id="in_status" required onchange="notificarCambioStatus()">
+                            <option value="DETECTADA">DETECTADA (HALLAZGO)</option>
+                            <option value="EN_PEDIMENTO">EN PEDIMENTO</option>
+                            <option value="ATENDIDA">ATENDIDA (OPERACIÓN)</option>
+                            <option value="CERRADA-REPROCESO">CERRADA (SANEADA)</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-primary">Fecha de Status (fec_actualizacion)</label>
+                        <input type="datetime-local" class="form-control fw-bold border-primary" id="in_fec_actualizacion" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Usuario Atención / Auditor</label>
+                        <input type="text" class="form-control" id="in_usr" placeholder="@usuario_responsable">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Fase del Proceso Calidad</label>
+                        <select class="form-select" id="in_fase">
+                            <option value="EXTRACCIÓN">EXTRACCIÓN (MIT-E)</option>
+                            <option value="TRANSFORMACIÓN">TRANSFORMACIÓN (MIT-T)</option>
+                            <option value="CONCILIACIÓN">CONCILIACIÓN (RR7-RR8)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-section-title">3. Clasificación Estructural y Referencias</div>
+                <div class="row g-2">
+                    <div class="col-4"><label class="form-label">Línea de Negocio</label><input type="text" class="form-control" id="in_linea"></div>
+                    <div class="col-4"><label class="form-label">Ramo</label><input type="text" class="form-control" id="in_ramo"></div>
+                    <div class="col-4"><label class="form-label">Subramo</label><input type="text" class="form-control" id="in_subramo"></div>
+                    <div class="col-6"><label class="form-label">Cve Producto</label><input type="text" class="form-control" id="in_prod"></div>
+                    <div class="col-6"><label class="form-label">Pedimento Ref.</label><input type="text" class="form-control" id="in_ref" placeholder="ID Pedimento vinculado"></div>
+                    <div class="col-12">
+                        <label class="form-label">Etiquetas de Control (#Semilla, #DatoNormativo)</label>
+                        <input type="text" class="form-control" id="in_tags" placeholder="Separar etiquetas por coma...">
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-danger w-100 fw-bold shadow-sm py-3">
+                        <i class="fas fa-save me-2"></i>GUARDAR CAMBIOS EN BITÁCORA FIRESTORE
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
+    <script>
+        // --- CONFIGURACIÓN Y ESTADO ---
+        const API_BASE = "http://127.0.0.1:8000/api/incidencias";
+        
+        let DATA_INC = [];
+        let EDITING_ID = null;
+        let ORIGINAL_STATUS = null;
+        const offInc = new bootstrap.Offcanvas(document.getElementById('offInc'));
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarDatos();
+        });
+
+        // --- CARGA DE DATOS DESDE FIRESTORE ---
+        async function cargarDatos() {
+            try {
+                const tbody = document.getElementById('tabla-body');
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Sincronizando con Bitácora de Calidad...</td></tr>';
+                
+                const res = await fetch(API_BASE);
+                if(!res.ok) throw new Error("Fallo en la conexión");
+                
+                DATA_INC = await res.json();
+                aplicarFiltros();
+            } catch (e) { 
+                console.error(e);
+                Swal.fire('Error Firestore', 'No se pudo recuperar la información de incidencias.', 'error');
+            }
+        }
+
+        // --- MOTOR DE FILTRADO MULTIDIMENSIONAL ---
+        function aplicarFiltros() {
+            const global = document.getElementById('f_global').value.toLowerCase();
+            const sev = document.getElementById('f_sev').value;
+            const status = document.getElementById('f_status').value;
+            const linea = document.getElementById('f_linea').value;
+            const poliza = document.getElementById('f_pol').value.toLowerCase();
+
+            const filtrados = DATA_INC.filter(d => {
+                const matchGlobal = !global || 
+                    d.id_bitacora.toLowerCase().includes(global) || 
+                    d.descripcion_error.toLowerCase().includes(global) || 
+                    d.poliza_id_nk?.toLowerCase().includes(global) ||
+                    (d.tags_config || []).some(t => t.toLowerCase().includes(global));
+
+                const matchSev = !sev || d.severidad === sev;
+                const matchStatus = !status || d.status === status;
+                const matchLinea = !linea || d.linea_negocio === linea;
+                const matchPoliza = !poliza || d.poliza_id_nk?.toLowerCase().includes(poliza);
+
+                return matchGlobal && matchSev && matchStatus && matchLinea && matchPoliza;
+            });
+
+            renderTable(filtrados);
+        }
+
+        // --- RENDERIZADO DE TABLA (ESTILO ORGÁNICO) ---
+        function renderTable(rows) {
+            const tbody = document.getElementById('tabla-body');
+            tbody.innerHTML = '';
+            document.getElementById('contador').innerText = `${rows.length} hallazgos`;
+
+            if(rows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">No se encontraron incidencias con los criterios de auditoría aplicados.</td></tr>';
+                return;
+            }
+
+            rows.forEach(r => {
+                const badgeSev = r.severidad === 'ALTA' ? 'bg-alta' : (r.severidad === 'MEDIA' ? 'bg-media' : (r.severidad === 'BAJA' ? 'bg-baja' : 'bg-adv'));
+                const tagsStr = (r.tags_config || []).map(t => `<span class="badge bg-light text-dark border me-1" style="font-size:8px">${t}</span>`).join('');
+                const antiguedad = calcularAntiguedad(r.fec_deteccion);
+
+                const tr = document.createElement('tr');
+                tr.onclick = () => editarIncidencia(r);
+                tr.innerHTML = `
+                    <td class="fw-bold text-muted small">${r.id_bitacora}</td>
+                    <td><span class="badge-sev ${badgeSev}">${r.severidad}</span></td>
+                    <td class="font-monospace text-primary fw-bold">${r.poliza_id_nk || '-'}</td>
+                    <td>
+                        <div class="text-dark fw-bold text-truncate" style="max-width:350px">${r.descripcion_error}</div>
+                        <div class="mt-1">${tagsStr}</div>
+                    </td>
+                    <td>
+                        <div class="small fw-bold text-uppercase">${r.status}</div>
+                        <div class="text-muted" style="font-size:9px">Status: ${r.fec_actualizacion ? moment(r.fec_actualizacion).format('DD/MM HH:mm') : 'N/A'}</div>
+                    </td>
+                    <td><small class="fw-bold text-secondary">${antiguedad} d</small></td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-light border" onclick="event.stopPropagation(); editarIncidencia(${JSON.stringify(r)})">
+                            <i class="fas fa-pencil-alt text-danger"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- GESTIÓN DE Hallazgos (CRUD) ---
+        function abrirAlta() {
+            EDITING_ID = null;
+            ORIGINAL_STATUS = null;
+            document.getElementById('formInc').reset();
+            document.getElementById('offTitle').innerText = "Nuevo Hallazgo de Calidad (MIT)";
+            document.getElementById('in_id').value = "INC-" + moment().format('YYMMDDHHmmss');
+            document.getElementById('in_fec_actualizacion').value = moment().format('YYYY-MM-DDTHH:mm');
+            document.getElementById('in_status').value = 'DETECTADA';
+            offInc.show();
+        }
+
+        function editarIncidencia(d) {
+            EDITING_ID = d.id_bitacora;
+            ORIGINAL_STATUS = d.status; 
+            
+            document.getElementById('offTitle').innerText = "Auditoría de Hallazgo: " + d.id_bitacora;
+            document.getElementById('in_id').value = d.id_bitacora;
+            document.getElementById('in_sev').value = d.severidad || 'ALTA';
+            document.getElementById('in_poliza').value = d.poliza_id_nk || '';
+            document.getElementById('in_desc').value = d.descripcion_error || '';
+            
+            // Valores Comparativos
+            document.getElementById('in_val_bad').value = d.valores?.valor_incorrecto || '';
+            document.getElementById('in_val_good').value = d.valores?.valor_sugerido || '';
+            
+            // Status y Fecha de Status (fec_actualizacion)
+            document.getElementById('in_status').value = d.status || 'DETECTADA';
+            const fAct = d.fec_actualizacion ? moment(d.fec_actualizacion).format('YYYY-MM-DDTHH:mm') : moment().format('YYYY-MM-DDTHH:mm');
+            document.getElementById('in_fec_actualizacion').value = fAct;
+            
+            // Metadatos
+            document.getElementById('in_usr').value = d.usuario_atencion || '';
+            document.getElementById('in_fase').value = d.fase_proceso || 'TRANSFORMACIÓN';
+            document.getElementById('in_linea').value = d.linea_negocio || '';
+            document.getElementById('in_ramo').value = d.ramo || '';
+            document.getElementById('in_subramo').value = d.sub_ramo || '';
+            document.getElementById('in_prod').value = d.cve_producto || '';
+            document.getElementById('in_ref').value = d.id_pedimento_ref || '';
+            document.getElementById('in_tags').value = (d.tags_config || []).join(', ');
+
+            offInc.show();
+        }
+
+        async function guardar(e) {
+            e.preventDefault();
+            
+            const payload = {
+                id_bitacora: document.getElementById('in_id').value,
+                poliza_id_nk: document.getElementById('in_poliza').value,
+                severidad: document.getElementById('in_sev').value,
+                descripcion_error: document.getElementById('in_desc').value,
+                status: document.getElementById('in_status').value,
+                fec_actualizacion: document.getElementById('in_fec_actualizacion').value, // PERSISTENCIA SOLICITADA
+                usuario_atencion: document.getElementById('in_usr').value,
+                fase_proceso: document.getElementById('in_fase').value,
+                valores: {
+                    valor_incorrecto: document.getElementById('in_val_bad').value,
+                    valor_sugerido: document.getElementById('in_val_good').value
+                },
+                linea_negocio: document.getElementById('in_linea').value,
+                ramo: document.getElementById('in_ramo').value,
+                sub_ramo: document.getElementById('in_subramo').value,
+                cve_producto: document.getElementById('in_prod').value,
+                id_pedimento_ref: document.getElementById('in_ref').value,
+                tags_config: document.getElementById('in_tags').value.split(',').map(s=>s.trim()).filter(s=>s),
+                activo: true
+            };
+
+            const method = EDITING_ID ? 'PUT' : 'POST';
+            const url = EDITING_ID ? `${API_BASE}/${EDITING_ID}` : API_BASE;
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                
+                if(res.ok) {
+                    Swal.fire({
+                        title: 'Bitácora Sincronizada',
+                        text: 'El hallazgo se ha guardado con trazabilidad de status actualizada.',
+                        icon: 'success',
+                        confirmButtonColor: '--ade-red'
+                    });
+                    offInc.hide();
+                    cargarDatos();
+                } else {
+                    const err = await res.json();
+                    Swal.fire('Error API', err.detail || 'Fallo al procesar el registro.', 'error');
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        // --- EXPORTACIÓN TOTAL ABC (BASE DE DATOS COMPLETA) ---
+        function exportarCSVTotal() {
+            if(DATA_INC.length === 0) return;
+            
+            // Definición de cabeceras completas para auditoría
+            let csv = "\uFEFFID_Bitacora,Poliza_NK,Severidad,Status,Fec_Status,Antiguedad,Linea,Ramo,Subramo,Producto,Fase,Valor_SIISA,Valor_ADE,Descripcion,Tags\n";
+            
+            DATA_INC.forEach(d => {
+                const fSt = d.fec_actualizacion ? moment(d.fec_actualizacion).format('YYYY-MM-DD HH:mm') : '';
+                const tags = (d.tags_config || []).join('|');
+                const desc = d.descripcion_error.replace(/"/g, '""');
+                
+                csv += `${d.id_bitacora},${d.poliza_id_nk},${d.severidad},${d.status},${fSt},${calcularAntiguedad(d.fec_deteccion)},${d.linea_negocio||''},${d.ramo||''},${d.sub_ramo||''},${d.cve_producto||''},${d.fase_proceso||''},"${d.valores?.valor_incorrecto||''}","${d.valores?.valor_sugerido||''}","${desc}",${tags}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `ADE_BITACORA_FULL_${moment().format('YYYYMMDD')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- UTILIDADES ---
+        function calcularAntiguedad(fecStr) {
+            if (!fecStr) return 0;
+            const inicio = moment(fecStr);
+            const hoy = moment();
+            return hoy.diff(inicio, 'days');
+        }
+
+        function notificarCambioStatus() {
+            const current = document.getElementById('in_status').value;
+            if (current !== ORIGINAL_STATUS) {
+                // Actualización automática sugerida si el usuario cambia el select
+                document.getElementById('in_fec_actualizacion').value = moment().format('YYYY-MM-DDTHH:mm');
+            }
+        }
+
+        function matchEscalamiento() { 
+            // Función de utilidad para consistencia de nombres
+        }
+    </script>
+</body>
+</html>
