@@ -1,0 +1,71 @@
+# docker-compose.yml — ADE Local Development
+# Replica el ambiente DESA para pruebas locales
+# Uso: docker-compose up --build
+
+version: "3.9"
+
+services:
+  # ═══════════════════════════════════════
+  # Base de Datos PostgreSQL
+  # ═══════════════════════════════════════
+  db:
+    image: postgres:15-alpine
+    container_name: ade-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ade
+      POSTGRES_USER: ade_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ade_local_2026}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ade_pgdata:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ade_user -d ade"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ═══════════════════════════════════════
+  # Backend API (FastAPI)
+  # ═══════════════════════════════════════
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ade-backend
+    restart: unless-stopped
+    environment:
+      ENV: local
+      DATABASE_URL: postgresql://ade_user:${DB_PASSWORD:-ade_local_2026}@db:5432/ade
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./api:/app/api
+      - ./main.py:/app/main.py
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ═══════════════════════════════════════
+  # pgAdmin (opcional, para administración visual)
+  # ═══════════════════════════════════════
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ade-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: jlcuenca@datalum.mx
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin2026}
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    profiles:
+      - tools  # Solo se levanta con: docker-compose --profile tools up
+
+volumes:
+  ade_pgdata:
+    driver: local
