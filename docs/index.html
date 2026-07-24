@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADE — Dashboard de Avance del Proyecto</title>
+    <meta name="description" content="Dashboard ejecutivo de avance del proyecto ADE Data Warehouse. Monitoreo en tiempo real de releases, épicas y sprints.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header" id="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <rect width="32" height="32" rx="8" fill="url(#logoGrad)"/>
+                            <path d="M8 22L16 10L24 22H8Z" fill="white" opacity="0.9"/>
+                            <path d="M12 22L16 15L20 22H12Z" fill="white" opacity="0.6"/>
+                            <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#6366F1"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1>ADE</h1>
+                        <p class="subtitle">Data Warehouse — Dashboard de Avance</p>
+                    </div>
+                </div>
+                <div class="header-meta">
+                    <div class="status-badge" id="statusBadge">
+                        <span class="status-dot"></span>
+                        <span>Cargando...</span>
+                    </div>
+                    <div class="last-update" id="lastUpdate"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Summary Cards -->
+        <section class="summary-section" id="summarySection">
+            <div class="summary-grid">
+                <div class="summary-card" id="cardTotal">
+                    <div class="card-icon blue">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                    </div>
+                    <div class="card-data">
+                        <span class="card-value" id="totalIssues">—</span>
+                        <span class="card-label">Total Historias</span>
+                    </div>
+                </div>
+                <div class="summary-card" id="cardOpen">
+                    <div class="card-icon amber">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    </div>
+                    <div class="card-data">
+                        <span class="card-value" id="openIssues">—</span>
+                        <span class="card-label">Pendientes</span>
+                    </div>
+                </div>
+                <div class="summary-card" id="cardClosed">
+                    <div class="card-icon green">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="card-data">
+                        <span class="card-value" id="closedIssues">—</span>
+                        <span class="card-label">Completadas</span>
+                    </div>
+                </div>
+                <div class="summary-card" id="cardProgress">
+                    <div class="card-icon purple">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    </div>
+                    <div class="card-data">
+                        <span class="card-value" id="progressPercent">—</span>
+                        <span class="card-label">Avance General</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Releases Section -->
+        <section class="releases-section" id="releasesSection">
+            <h2 class="section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                Avance por Release
+            </h2>
+            <div class="releases-grid" id="releasesGrid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Epics Section -->
+        <section class="epics-section" id="epicsSection">
+            <h2 class="section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Avance por Épica
+            </h2>
+            <div class="epics-grid" id="epicsGrid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Recent Activity -->
+        <section class="activity-section" id="activitySection">
+            <h2 class="section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Actividad Reciente
+            </h2>
+            <div class="activity-list" id="activityList">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>ADE Data Warehouse — Dashboard Ejecutivo</p>
+            <p class="footer-sub">Datos obtenidos en tiempo real desde GitHub. Auto-refresh cada 5 min.</p>
+        </footer>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const CONFIG = {
+            owner: 'jlcuenca-dl',
+            repo: 'ade',
+            refreshInterval: 5 * 60 * 1000, // 5 minutes
+            epicLabels: {
+                'epic:E1-comunicacion': { name: 'E1 — Comunicación y Requerimientos', color: '#1D76DB', order: 1 },
+                'epic:E2-normatividad': { name: 'E2 — Gestor de Normatividad', color: '#D93F0B', order: 2 },
+                'epic:E3-incidencias': { name: 'E3 — Gestor de Incidencias', color: '#E99695', order: 3 },
+                'epic:E4-reportes': { name: 'E4 — Generador de Reportes', color: '#F9D0C4', order: 4 },
+                'epic:E5-validaciones': { name: 'E5 — Gestor de Validaciones', color: '#0E8A16', order: 5 },
+                'epic:E6-base-datos': { name: 'E6 — Base de Datos', color: '#006B75', order: 6 },
+                'epic:E7-carga-info': { name: 'E7 — Carga de Información', color: '#FBCA04', order: 7 },
+                'epic:E8-extraccion': { name: 'E8 — Extracción SIISA', color: '#B60205', order: 8 },
+                'epic:E9-infraestructura': { name: 'E9 — Infraestructura', color: '#5319E7', order: 9 },
+                'epic:E10-mantenimiento': { name: 'E10 — Mantenimiento', color: '#BFD4F2', order: 10 }
+            },
+            releaseNames: {
+                'R0': 'R0 — MVP / Funcionalidad Base',
+                'R1': 'R1 — Mejoras y Gestión Avanzada',
+                'R2': 'R2 — Optimización',
+                'R3': 'R3 — Roles y Permisos'
+            }
+        };
+
+        // ============================================
+        // DATA FETCHING
+        // ============================================
+        async function fetchAllIssues() {
+            const allIssues = [];
+            let page = 1;
+            const perPage = 100;
+
+            while (true) {
+                const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?state=all&per_page=${perPage}&page=${page}&labels=type:story`;
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const issues = await response.json();
+                    if (issues.length === 0) break;
+                    // Filter out pull requests
+                    const realIssues = issues.filter(i => !i.pull_request);
+                    allIssues.push(...realIssues);
+                    if (issues.length < perPage) break;
+                    page++;
+                } catch (error) {
+                    console.error('Error fetching issues:', error);
+                    break;
+                }
+            }
+            return allIssues;
+        }
+
+        // ============================================
+        // DATA PROCESSING
+        // ============================================
+        function getEpicLabel(issue) {
+            const epicLabel = issue.labels.find(l => l.name.startsWith('epic:'));
+            return epicLabel ? epicLabel.name : 'unknown';
+        }
+
+        function getReleaseFromMilestone(issue) {
+            if (!issue.milestone) return 'Unknown';
+            const title = issue.milestone.title;
+            if (title.startsWith('R0')) return 'R0';
+            if (title.startsWith('R1')) return 'R1';
+            if (title.startsWith('R2')) return 'R2';
+            if (title.startsWith('R3')) return 'R3';
+            return 'Unknown';
+        }
+
+        function processData(issues) {
+            const totalIssues = issues.length;
+            const closedIssues = issues.filter(i => i.state === 'closed').length;
+            const openIssues = totalIssues - closedIssues;
+            const progressPercent = totalIssues > 0 ? Math.round((closedIssues / totalIssues) * 100) : 0;
+
+            // By release
+            const releases = {};
+            ['R0', 'R1', 'R2', 'R3'].forEach(r => {
+                releases[r] = { total: 0, closed: 0 };
+            });
+            issues.forEach(issue => {
+                const release = getReleaseFromMilestone(issue);
+                if (releases[release]) {
+                    releases[release].total++;
+                    if (issue.state === 'closed') releases[release].closed++;
+                }
+            });
+
+            // By epic
+            const epics = {};
+            Object.keys(CONFIG.epicLabels).forEach(key => {
+                epics[key] = { total: 0, closed: 0 };
+            });
+            issues.forEach(issue => {
+                const epic = getEpicLabel(issue);
+                if (epics[epic]) {
+                    epics[epic].total++;
+                    if (issue.state === 'closed') epics[epic].closed++;
+                }
+            });
+
+            // Recent activity (last 10 closed)
+            const recentClosed = issues
+                .filter(i => i.state === 'closed' && i.closed_at)
+                .sort((a, b) => new Date(b.closed_at) - new Date(a.closed_at))
+                .slice(0, 10);
+
+            return { totalIssues, closedIssues, openIssues, progressPercent, releases, epics, recentClosed };
+        }
+
+        // ============================================
+        // RENDERING
+        // ============================================
+        function renderSummary(data) {
+            document.getElementById('totalIssues').textContent = data.totalIssues;
+            document.getElementById('openIssues').textContent = data.openIssues;
+            document.getElementById('closedIssues').textContent = data.closedIssues;
+            document.getElementById('progressPercent').textContent = `${data.progressPercent}%`;
+
+            // Animate cards
+            document.querySelectorAll('.summary-card').forEach((card, i) => {
+                card.style.animationDelay = `${i * 0.1}s`;
+                card.classList.add('animate-in');
+            });
+        }
+
+        function renderReleases(data) {
+            const grid = document.getElementById('releasesGrid');
+            grid.innerHTML = '';
+
+            const releaseColors = {
+                'R0': '#6366F1',
+                'R1': '#8B5CF6',
+                'R2': '#A78BFA',
+                'R3': '#C4B5FD'
+            };
+
+            ['R0', 'R1', 'R2', 'R3'].forEach((release, index) => {
+                const info = data.releases[release];
+                const percent = info.total > 0 ? Math.round((info.closed / info.total) * 100) : 0;
+                const name = CONFIG.releaseNames[release] || release;
+
+                const card = document.createElement('div');
+                card.className = 'release-card';
+                card.style.animationDelay = `${index * 0.15}s`;
+                card.innerHTML = `
+                    <div class="release-header">
+                        <span class="release-name">${name}</span>
+                        <span class="release-percent">${percent}%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: ${percent}%; background: ${releaseColors[release]}; transition-delay: ${index * 0.2}s;"></div>
+                    </div>
+                    <div class="release-stats">
+                        <span>${info.closed} completadas</span>
+                        <span>${info.total - info.closed} pendientes</span>
+                        <span>${info.total} total</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderEpics(data) {
+            const grid = document.getElementById('epicsGrid');
+            grid.innerHTML = '';
+
+            const sortedEpics = Object.entries(data.epics)
+                .filter(([key]) => CONFIG.epicLabels[key])
+                .sort((a, b) => CONFIG.epicLabels[a[0]].order - CONFIG.epicLabels[b[0]].order);
+
+            sortedEpics.forEach(([key, info], index) => {
+                const epicConfig = CONFIG.epicLabels[key];
+                const percent = info.total > 0 ? Math.round((info.closed / info.total) * 100) : 0;
+
+                const card = document.createElement('div');
+                card.className = 'epic-card';
+                card.style.animationDelay = `${index * 0.08}s`;
+                card.innerHTML = `
+                    <div class="epic-header">
+                        <div class="epic-color-dot" style="background: ${epicConfig.color};"></div>
+                        <span class="epic-name">${epicConfig.name}</span>
+                        <span class="epic-count">${info.closed}/${info.total}</span>
+                    </div>
+                    <div class="progress-bar-container small">
+                        <div class="progress-bar" style="width: ${percent}%; background: ${epicConfig.color};"></div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderActivity(data) {
+            const list = document.getElementById('activityList');
+            list.innerHTML = '';
+
+            if (data.recentClosed.length === 0) {
+                list.innerHTML = '<div class="activity-empty">No hay actividad reciente. Las historias completadas aparecerán aquí.</div>';
+                return;
+            }
+
+            data.recentClosed.forEach((issue, index) => {
+                const date = new Date(issue.closed_at);
+                const dateStr = date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+                const epicLabel = issue.labels.find(l => l.name.startsWith('epic:'));
+                const epicName = epicLabel && CONFIG.epicLabels[epicLabel.name]
+                    ? CONFIG.epicLabels[epicLabel.name].name
+                    : '';
+                const epicColor = epicLabel && CONFIG.epicLabels[epicLabel.name]
+                    ? CONFIG.epicLabels[epicLabel.name].color
+                    : '#666';
+
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                item.style.animationDelay = `${index * 0.05}s`;
+                item.innerHTML = `
+                    <div class="activity-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="activity-content">
+                        <span class="activity-title">${issue.title}</span>
+                        <div class="activity-meta">
+                            <span class="activity-epic" style="color: ${epicColor};">${epicName}</span>
+                            <span class="activity-date">${dateStr}</span>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function updateStatus(success) {
+            const badge = document.getElementById('statusBadge');
+            const dot = badge.querySelector('.status-dot');
+            const text = badge.querySelector('span:last-child');
+
+            if (success) {
+                dot.classList.add('online');
+                text.textContent = 'En línea';
+            } else {
+                dot.classList.remove('online');
+                dot.classList.add('error');
+                text.textContent = 'Sin conexión';
+            }
+
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent =
+                `Última actualización: ${now.toLocaleTimeString('es-MX')}`;
+        }
+
+        // ============================================
+        // MAIN
+        // ============================================
+        async function loadDashboard() {
+            try {
+                const issues = await fetchAllIssues();
+                const data = processData(issues);
+                renderSummary(data);
+                renderReleases(data);
+                renderEpics(data);
+                renderActivity(data);
+                updateStatus(true);
+            } catch (error) {
+                console.error('Dashboard error:', error);
+                updateStatus(false);
+            }
+        }
+
+        // Initial load
+        loadDashboard();
+
+        // Auto-refresh
+        setInterval(loadDashboard, CONFIG.refreshInterval);
+    </script>
+</body>
+</html>
