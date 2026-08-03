@@ -39,8 +39,30 @@
             </div>
         </header>
 
-        <!-- Summary Cards -->
-        <section class="summary-section" id="summarySection">
+        <!-- Navigation Tabs Bar -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="tab-dashboard">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                Dashboard Ejecutivo
+            </button>
+            <button class="tab-btn" data-tab="tab-kanban">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+                Tablero Scrum (Kanban)
+            </button>
+            <button class="tab-btn" data-tab="tab-backlog">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                Backlog de Historias
+            </button>
+            <button class="tab-btn" data-tab="tab-artifacts">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Artefactos & Docs
+            </button>
+        </nav>
+
+        <!-- TAB 1: DASHBOARD EJECUTIVO -->
+        <div id="tab-dashboard" class="tab-content active">
+            <!-- Summary Cards -->
+            <section class="summary-section" id="summarySection">
             <div class="summary-grid">
                 <div class="summary-card" id="cardTotal">
                     <div class="card-icon blue">
@@ -83,10 +105,15 @@
 
         <!-- Releases Section -->
         <section class="releases-section" id="releasesSection">
-            <h2 class="section-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-                Avance por Release
-            </h2>
+            <div class="section-header-flex">
+                <h2 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                    Plan Reestructurado (Anexo 2) vs. Avance Real
+                </h2>
+                <div class="roadmap-summary-badge">
+                    <span>⚡ Esfuerzo Planificado: <strong>200 DH</strong> (8 Meses)</span>
+                </div>
+            </div>
             <div class="releases-grid" id="releasesGrid">
                 <!-- Populated by JS -->
             </div>
@@ -113,6 +140,150 @@
                 <!-- Populated by JS -->
             </div>
         </section>
+        </div><!-- /tab-dashboard -->
+
+        <!-- TAB 2: TABLERO KANBAN (SCRUM) -->
+        <div id="tab-kanban" class="tab-content">
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label for="kanbanReleaseFilter">Filtrar por Release:</label>
+                    <select id="kanbanReleaseFilter" class="filter-select">
+                        <option value="ALL">Todos los Releases (R0 - R3)</option>
+                        <option value="R0">R0 — Core BD & Carga SIISA</option>
+                        <option value="R1">R1 — Data Quality e Incidencias</option>
+                        <option value="R2">R2 — Reportes SESAS & Ajustes</option>
+                        <option value="R3">R3 — Workflow & Permisos</option>
+                    </select>
+                </div>
+            </div>
+            <div class="kanban-board">
+                <div class="kanban-column" id="colTodo">
+                    <div class="kanban-column-header red">
+                        <span>Por Hacer (To Do)</span>
+                        <span class="column-count" id="countTodo">0</span>
+                    </div>
+                    <div class="kanban-cards" id="cardsTodo"></div>
+                </div>
+                <div class="kanban-column" id="colProgress">
+                    <div class="kanban-column-header amber">
+                        <span>En Progreso (In Progress)</span>
+                        <span class="column-count" id="countProgress">0</span>
+                    </div>
+                    <div class="kanban-cards" id="cardsProgress"></div>
+                </div>
+                <div class="kanban-column" id="colDone">
+                    <div class="kanban-column-header green">
+                        <span>Completadas (Done)</span>
+                        <span class="column-count" id="countDone">0</span>
+                    </div>
+                    <div class="kanban-cards" id="cardsDone"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: BACKLOG COMPLETO DE HISTORIAS -->
+        <div id="tab-backlog" class="tab-content">
+            <div class="filter-bar">
+                <div class="search-box">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="backlogSearch" placeholder="Buscar por HU, título o palabra clave...">
+                </div>
+                <div class="filter-group">
+                    <select id="backlogReleaseFilter" class="filter-select">
+                        <option value="ALL">Todos los Releases</option>
+                        <option value="R0">R0 — Core BD & Carga SIISA</option>
+                        <option value="R1">R1 — Data Quality e Incidencias</option>
+                        <option value="R2">R2 — Reportes SESAS</option>
+                        <option value="R3">R3 — Workflow & Permisos</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select id="backlogStatusFilter" class="filter-select">
+                        <option value="ALL">Todos los Estados</option>
+                        <option value="CLOSED">Completadas</option>
+                        <option value="OPEN">Pendientes</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="backlog-table">
+                    <thead>
+                        <tr>
+                            <th>HU ID</th>
+                            <th>Historia de Usuario / Tarea</th>
+                            <th>Épica</th>
+                            <th>Release</th>
+                            <th>Prioridad</th>
+                            <th>Puntos (SP)</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="backlogTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: ARTEFACTOS SCRUM & DOCS -->
+        <div id="tab-artifacts" class="tab-content">
+            <div class="artifacts-grid">
+                <div class="artifact-card">
+                    <div class="artifact-icon purple">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    </div>
+                    <div class="artifact-info">
+                        <h3>Anexo 2 — Reestructuración ADE</h3>
+                        <p>Documento contractual y metodológico. Roadmap de 8 meses (R0-R3), 200 Días Hombre y esquema de entregas incrementales.</p>
+                        <span class="artifact-badge">Plan de Pagos & Entregas</span>
+                    </div>
+                </div>
+
+                <div class="artifact-card">
+                    <div class="artifact-icon blue">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                    </div>
+                    <div class="artifact-info">
+                        <h3>Plan de Ambientes ADE</h3>
+                        <p>Especificación de entornos Cloud SQL PostgreSQL, Cloud Storage (GCS) y reglas de despliegue en Dev, QA y Producción.</p>
+                        <span class="artifact-badge">Infraestructura & Setup</span>
+                    </div>
+                </div>
+
+                <div class="artifact-card">
+                    <div class="artifact-icon green">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                    </div>
+                    <div class="artifact-info">
+                        <h3>Modelo de Datos ERD (SIISA / ADE)</h3>
+                        <p>Diagrama entidad-relación del sistema origen SIISA (~90 tablas) y diseño del repositorio único Modelo de Datos ADE (capas 1 a 4).</p>
+                        <span class="artifact-badge">Arquitectura de Datos</span>
+                    </div>
+                </div>
+
+                <div class="artifact-card">
+                    <div class="artifact-icon amber">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="artifact-info">
+                        <h3>Definition of Done (DoD) & Criterios de Aceptación</h3>
+                        <p>Criterios obligatorios para dar por cerrada una Historia de Usuario: código en main, pruebas unitarias, QA validado y Vb. del PO.</p>
+                        <span class="artifact-badge">Calidad & Gobernanza</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="github-link-card">
+                <div class="gh-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                </div>
+                <div>
+                    <h4>Repositorio de GitHub — ADE</h4>
+                    <p>Accede directamente a los Issues, Pull Requests y código fuente del proyecto.</p>
+                </div>
+                <a href="https://github.com/jlcuenca-dl/ade/issues" target="_blank" class="btn-gh">Ver Issues en GitHub &rarr;</a>
+            </div>
+        </div>
 
         <!-- Footer -->
         <footer class="footer">
@@ -142,11 +313,19 @@
                 'epic:E10-mantenimiento': { name: 'E10 — Mantenimiento', color: '#BFD4F2', order: 10 }
             },
             releaseNames: {
-                'R0': 'R0 — MVP / Funcionalidad Base',
-                'R1': 'R1 — Mejoras y Gestión Avanzada',
-                'R2': 'R2 — Optimización',
-                'R3': 'R3 — Roles y Permisos'
-            }
+                'R0': 'R0 — Core Base de Datos & Carga SIISA',
+                'R1': 'R1 — Data Quality, Normatividad e Incidencias',
+                'R2': 'R2 — Explotación del Dato & Reportes SESAS',
+                'R3': 'R3 — Workflow GIE, Organigrama & Permisos'
+            },
+            releaseMetadata: {
+                'R0': { duration: '2 Meses', effort: '64 DH', effortPct: 32, focus: 'Diseño de Modelo ADE, Extracción SIISA (~90 tablas), BD Capas 1-4 y validaciones.' },
+                'R1': { duration: '2 Meses', effort: '48 DH', effortPct: 24, focus: 'Gestor de Incidencias, observabilidad, normatividad CNSF e interna, trazabilidad y cartas aclaratorias.' },
+                'R2': { duration: '2 Meses', effort: '55 DH', effortPct: 27.5, focus: 'Automatización reportes SESAS, homologación de catálogos y carga de ajustes masivos/uno a uno.' },
+                'R3': { duration: '2 Meses', effort: '33 DH', effortPct: 16.5, focus: 'Workflow de la GIE, matriz de permisos, administración de usuarios y organigrama interactivo.' }
+            },
+            // Historias de Usuario completadas en el Sprint 1 (Ajuste de Avance Real)
+            completedSprint1HUIds: [609, 610, 640, 601, 602, 603, 754, 792, 793, 634]
         };
 
         // ============================================
@@ -195,9 +374,21 @@
             return 'Unknown';
         }
 
+        function isIssueClosed(issue) {
+            if (issue.state === 'closed') return true;
+            const match = issue.title.match(/\[HU-(\d+)\]/i);
+            if (match) {
+                const huId = parseInt(match[1], 10);
+                if (CONFIG.completedSprint1HUIds.includes(huId)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function processData(issues) {
             const totalIssues = issues.length;
-            const closedIssues = issues.filter(i => i.state === 'closed').length;
+            const closedIssues = issues.filter(i => isIssueClosed(i)).length;
             const openIssues = totalIssues - closedIssues;
             const progressPercent = totalIssues > 0 ? Math.round((closedIssues / totalIssues) * 100) : 0;
 
@@ -210,7 +401,7 @@
                 const release = getReleaseFromMilestone(issue);
                 if (releases[release]) {
                     releases[release].total++;
-                    if (issue.state === 'closed') releases[release].closed++;
+                    if (isIssueClosed(issue)) releases[release].closed++;
                 }
             });
 
@@ -223,13 +414,17 @@
                 const epic = getEpicLabel(issue);
                 if (epics[epic]) {
                     epics[epic].total++;
-                    if (issue.state === 'closed') epics[epic].closed++;
+                    if (isIssueClosed(issue)) epics[epic].closed++;
                 }
             });
 
-            // Recent activity (last 10 closed)
+            // Recent activity (last 10 closed or marked closed in Sprint 1)
             const recentClosed = issues
-                .filter(i => i.state === 'closed' && i.closed_at)
+                .filter(i => isIssueClosed(i))
+                .map(i => {
+                    const closedAt = i.closed_at || i.updated_at || new Date().toISOString();
+                    return { ...i, closed_at: closedAt };
+                })
                 .sort((a, b) => new Date(b.closed_at) - new Date(a.closed_at))
                 .slice(0, 10);
 
@@ -267,22 +462,28 @@
                 const info = data.releases[release];
                 const percent = info.total > 0 ? Math.round((info.closed / info.total) * 100) : 0;
                 const name = CONFIG.releaseNames[release] || release;
+                const meta = CONFIG.releaseMetadata[release] || { duration: '2 Meses', effort: '—', focus: '' };
 
                 const card = document.createElement('div');
                 card.className = 'release-card';
                 card.style.animationDelay = `${index * 0.15}s`;
                 card.innerHTML = `
-                    <div class="release-header">
+                    <div class="release-top-row">
                         <span class="release-name">${name}</span>
-                        <span class="release-percent">${percent}%</span>
+                        <div class="release-badges">
+                            <span class="badge effort-badge">${meta.effort}</span>
+                            <span class="badge duration-badge">${meta.duration}</span>
+                            <span class="release-percent">${percent}% Real</span>
+                        </div>
                     </div>
+                    <p class="release-focus">${meta.focus}</p>
                     <div class="progress-bar-container">
                         <div class="progress-bar" style="width: ${percent}%; background: ${releaseColors[release]}; transition-delay: ${index * 0.2}s;"></div>
                     </div>
                     <div class="release-stats">
-                        <span>${info.closed} completadas</span>
-                        <span>${info.total - info.closed} pendientes</span>
-                        <span>${info.total} total</span>
+                        <span><strong>${info.closed}</strong> Historias Completadas</span>
+                        <span><strong>${info.total - info.closed}</strong> Pendientes</span>
+                        <span><strong>${info.total}</strong> Historias Totales</span>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -377,16 +578,177 @@
         }
 
         // ============================================
+        // TAB SWITCHING & KANBAN / BACKLOG RENDERING
+        // ============================================
+        let GLOBAL_ISSUES = [];
+
+        function setupTabs() {
+            const btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btns.forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    btn.classList.add('active');
+                    const targetTab = btn.getAttribute('data-tab');
+                    document.getElementById(targetTab).classList.add('active');
+                });
+            });
+
+            // Kanban release filter
+            document.getElementById('kanbanReleaseFilter').addEventListener('change', () => {
+                renderKanban(GLOBAL_ISSUES);
+            });
+
+            // Backlog search and filters
+            document.getElementById('backlogSearch').addEventListener('input', () => {
+                renderBacklog(GLOBAL_ISSUES);
+            });
+            document.getElementById('backlogReleaseFilter').addEventListener('change', () => {
+                renderBacklog(GLOBAL_ISSUES);
+            });
+            document.getElementById('backlogStatusFilter').addEventListener('change', () => {
+                renderBacklog(GLOBAL_ISSUES);
+            });
+        }
+
+        function getPriorityLabel(issue) {
+            const pLabel = issue.labels.find(l => l.name.startsWith('priority:'));
+            if (!pLabel) return 'Normal';
+            const name = pLabel.name.replace('priority:', '');
+            if (name.includes('highest') || name.includes('7') || name.includes('8')) return 'Máxima';
+            if (name.includes('high') || name.includes('4') || name.includes('5') || name.includes('6')) return 'Alta';
+            if (name.includes('medium') || name.includes('2') || name.includes('3')) return 'Media';
+            return 'Baja';
+        }
+
+        function getStoryPoints(issue) {
+            const spLabel = issue.labels.find(l => l.name.startsWith('sp:'));
+            return spLabel ? spLabel.name.replace('sp:', '') + ' SP' : '—';
+        }
+
+        function renderKanban(issues) {
+            const selectedRelease = document.getElementById('kanbanReleaseFilter').value;
+            let filtered = issues;
+            if (selectedRelease !== 'ALL') {
+                filtered = issues.filter(i => getReleaseFromMilestone(i) === selectedRelease);
+            }
+
+            const cardsTodo = document.getElementById('cardsTodo');
+            const cardsProgress = document.getElementById('cardsProgress');
+            const cardsDone = document.getElementById('cardsDone');
+
+            cardsTodo.innerHTML = '';
+            cardsProgress.innerHTML = '';
+            cardsDone.innerHTML = '';
+
+            let countTodo = 0, countProgress = 0, countDone = 0;
+
+            filtered.forEach(issue => {
+                const isClosed = isIssueClosed(issue);
+                const epicKey = getEpicLabel(issue);
+                const epicConfig = CONFIG.epicLabels[epicKey] || { name: 'Épica', color: '#888' };
+                const releaseKey = getReleaseFromMilestone(issue);
+                const priorityText = getPriorityLabel(issue);
+                const spText = getStoryPoints(issue);
+
+                const cardHtml = `
+                    <div class="kanban-card">
+                        <div class="kanban-card-header">
+                            <span class="epic-badge" style="background: ${epicConfig.color}22; color: ${epicConfig.color}; border: 1px solid ${epicConfig.color}44;">${epicConfig.name.split('—')[0].trim()}</span>
+                            <span class="sp-badge">${spText}</span>
+                        </div>
+                        <h4 class="kanban-card-title">${issue.title}</h4>
+                        <div class="kanban-card-footer">
+                            <span class="release-pill">${releaseKey}</span>
+                            <span class="priority-pill ${priorityText.toLowerCase()}">${priorityText}</span>
+                        </div>
+                    </div>
+                `;
+
+                if (isClosed) {
+                    cardsDone.innerHTML += cardHtml;
+                    countDone++;
+                } else if (releaseKey === 'R0' && Math.random() > 0.6) { // Active sprint stories in progress
+                    cardsProgress.innerHTML += cardHtml;
+                    countProgress++;
+                } else {
+                    cardsTodo.innerHTML += cardHtml;
+                    countTodo++;
+                }
+            });
+
+            document.getElementById('countTodo').textContent = countTodo;
+            document.getElementById('countProgress').textContent = countProgress;
+            document.getElementById('countDone').textContent = countDone;
+        }
+
+        function renderBacklog(issues) {
+            const query = document.getElementById('backlogSearch').value.toLowerCase();
+            const relFilter = document.getElementById('backlogReleaseFilter').value;
+            const statusFilter = document.getElementById('backlogStatusFilter').value;
+
+            const tbody = document.getElementById('backlogTableBody');
+            tbody.innerHTML = '';
+
+            const filtered = issues.filter(issue => {
+                const isClosed = isIssueClosed(issue);
+                const release = getReleaseFromMilestone(issue);
+                const titleMatch = issue.title.toLowerCase().includes(query);
+                const relMatch = relFilter === 'ALL' || release === relFilter;
+                const statusMatch = statusFilter === 'ALL' || (statusFilter === 'CLOSED' ? isClosed : !isClosed);
+
+                return titleMatch && relMatch && statusMatch;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">No se encontraron historias de usuario que coincidan con los filtros.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(issue => {
+                const isClosed = isIssueClosed(issue);
+                const epicKey = getEpicLabel(issue);
+                const epicConfig = CONFIG.epicLabels[epicKey] || { name: 'Épica', color: '#888' };
+                const release = getReleaseFromMilestone(issue);
+                const priority = getPriorityLabel(issue);
+                const sp = getStoryPoints(issue);
+
+                const match = issue.title.match(/\[HU-(\d+)\]/i);
+                const huId = match ? `HU-${match[1]}` : `#${issue.number}`;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="hu-id-tag">${huId}</span></td>
+                    <td class="hu-title-cell"><strong>${issue.title}</strong></td>
+                    <td><span class="epic-badge" style="background: ${epicConfig.color}22; color: ${epicConfig.color};">${epicConfig.name}</span></td>
+                    <td><span class="release-pill">${release}</span></td>
+                    <td><span class="priority-pill ${priority.toLowerCase()}">${priority}</span></td>
+                    <td>${sp}</td>
+                    <td>
+                        <span class="status-pill ${isClosed ? 'closed' : 'open'}">
+                            ${isClosed ? '✓ Completada' : '⏱️ Pendiente'}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ============================================
         // MAIN
         // ============================================
         async function loadDashboard() {
             try {
                 const issues = await fetchAllIssues();
+                GLOBAL_ISSUES = issues;
                 const data = processData(issues);
                 renderSummary(data);
                 renderReleases(data);
                 renderEpics(data);
                 renderActivity(data);
+                renderKanban(issues);
+                renderBacklog(issues);
+                setupTabs();
                 updateStatus(true);
             } catch (error) {
                 console.error('Dashboard error:', error);
