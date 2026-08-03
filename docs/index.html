@@ -53,6 +53,10 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                 Backlog de Historias
             </button>
+            <button class="tab-btn" data-tab="tab-calendar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Calendario & Roadmap
+            </button>
             <button class="tab-btn" data-tab="tab-artifacts">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 Artefactos & Docs
@@ -223,9 +227,54 @@
                     </tbody>
                 </table>
             </div>
+        <!-- TAB 4: CALENDARIO & CRONOGRAMA DE ENTREGAS -->
+        <div id="tab-calendar" class="tab-content">
+            <div class="calendar-header-card">
+                <div class="calendar-header-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <div>
+                        <h3>Cronograma de Entregas — Planeado vs. Avance Real</h3>
+                        <p>Comparación visual mes a mes del roadmap reestructurado (Anexo 2 / 200 DH) contra el porcentaje de avance real de Scrum.</p>
+                    </div>
+                </div>
+                <div class="calendar-legend">
+                    <div class="legend-item"><span class="legend-box plan"></span> <span>Planeación Anexo 2 (Compromiso)</span></div>
+                    <div class="legend-item"><span class="legend-box real"></span> <span>Avance Real (Historias GitHub)</span></div>
+                </div>
+            </div>
+
+            <!-- Visual Gantt Timeline -->
+            <div class="gantt-container">
+                <div class="gantt-header">
+                    <div class="gantt-col-label">Release / Entregable</div>
+                    <div class="gantt-months-grid">
+                        <span>Dic 2025</span>
+                        <span>Ene 2026</span>
+                        <span>Feb 2026</span>
+                        <span>Mar 2026</span>
+                        <span>Abr 2026</span>
+                        <span>May 2026</span>
+                        <span>Jun 2026</span>
+                        <span>Jul 2026</span>
+                    </div>
+                </div>
+
+                <div class="gantt-rows" id="ganttRows">
+                    <!-- Populated by JS dynamically -->
+                </div>
+            </div>
+
+            <!-- Monthly Milestones Grid -->
+            <h3 class="section-title" style="margin-top: 36px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Hitos y Fechas Límite de Entregas
+            </h3>
+            <div class="milestones-grid" id="milestonesGrid">
+                <!-- Populated by JS -->
+            </div>
         </div>
 
-        <!-- TAB 4: ARTEFACTOS SCRUM & DOCS -->
+        <!-- TAB 5: ARTEFACTOS SCRUM & DOCS -->
         <div id="tab-artifacts" class="tab-content">
             <div class="artifacts-grid">
                 <div class="artifact-card">
@@ -734,6 +783,104 @@
             });
         }
 
+        function renderCalendar(issues, data) {
+            const ganttContainer = document.getElementById('ganttRows');
+            const milestonesContainer = document.getElementById('milestonesGrid');
+            if (!ganttContainer || !milestonesContainer) return;
+
+            ganttContainer.innerHTML = '';
+            milestonesContainer.innerHTML = '';
+
+            const calendarMeta = [
+                {
+                    key: 'R0',
+                    name: 'R0 — Core Base de Datos & Carga SIISA',
+                    dates: 'Dic 2025 - Ene 2026',
+                    effort: '64 DH',
+                    startCol: 1,
+                    spanCols: 2,
+                    color: '#6366F1',
+                    deliverable: 'Repositorio único BDI, extracción SIISA (~90 tablas) y capas BD 1 a 4.'
+                },
+                {
+                    key: 'R1',
+                    name: 'R1 — Data Quality e Incidencias',
+                    dates: 'Feb 2026 - Mar 2026',
+                    effort: '48 DH',
+                    startCol: 3,
+                    spanCols: 2,
+                    color: '#8B5CF6',
+                    deliverable: 'Observabilidad del dato, reglas CNSF/internas, trazabilidad y cartas aclaratorias.'
+                },
+                {
+                    key: 'R2',
+                    name: 'R2 — Explotación & Reportes SESAS',
+                    dates: 'Abr 2026 - May 2026',
+                    effort: '55 DH',
+                    startCol: 5,
+                    spanCols: 2,
+                    color: '#A78BFA',
+                    deliverable: 'Automatización de reportes SESAS y módulo de cargas/ajustes masivos.'
+                },
+                {
+                    key: 'R3',
+                    name: 'R3 — Workflow & Gobierno GIE',
+                    dates: 'Jun 2026 - Jul 2026',
+                    effort: '33 DH',
+                    startCol: 7,
+                    spanCols: 2,
+                    color: '#C4B5FD',
+                    deliverable: 'Flujo de trabajo centralizado, organigrama interactivo, roles y permisos.'
+                }
+            ];
+
+            calendarMeta.forEach((item) => {
+                const releaseInfo = data.releases[item.key] || { total: 0, closed: 0 };
+                const pctReal = releaseInfo.total > 0 ? Math.round((releaseInfo.closed / releaseInfo.total) * 100) : 0;
+
+                // Gantt Row
+                const row = document.createElement('div');
+                row.className = 'gantt-row';
+                row.innerHTML = `
+                    <div class="gantt-row-label">
+                        <strong>${item.key}</strong> — ${item.name.split('—')[1].trim()}
+                        <div class="gantt-row-sub">${item.effort} | ${item.dates}</div>
+                    </div>
+                    <div class="gantt-row-grid">
+                        <div class="gantt-bar-wrapper" style="grid-column: ${item.startCol} / span ${item.spanCols};">
+                            <div class="gantt-bar plan-bar" style="border-color: ${item.color};">
+                                <span class="gantt-bar-label">Planeado: ${item.dates} (${item.effort})</span>
+                            </div>
+                            <div class="gantt-bar real-bar" style="width: ${pctReal}%; background: ${item.color};">
+                                <span class="gantt-bar-real-text">${pctReal > 10 ? pctReal + '% Real' : ''}</span>
+                            </div>
+                            ${pctReal <= 10 ? `<span class="gantt-pct-floating">${pctReal}% Real</span>` : ''}
+                        </div>
+                    </div>
+                `;
+                ganttContainer.appendChild(row);
+
+                // Milestone Card
+                const card = document.createElement('div');
+                card.className = 'milestone-card';
+                card.innerHTML = `
+                    <div class="milestone-header">
+                        <span class="milestone-release-badge" style="background: ${item.color}22; color: ${item.color}; border: 1px solid ${item.color}44;">${item.key}</span>
+                        <span class="milestone-date">${item.dates}</span>
+                    </div>
+                    <h4>${item.name}</h4>
+                    <p>${item.deliverable}</p>
+                    <div class="milestone-footer">
+                        <span>Esfuerzo: <strong>${item.effort}</strong></span>
+                        <span class="status-pill ${pctReal > 0 ? 'closed' : 'open'}">
+                            ${pctReal === 100 ? '✓ Completado' : (pctReal > 0 ? '⚡ En Ejecución (' + pctReal + '%)' : '⏱️ Programado')}
+                        </span>
+                    </div>
+                `;
+                milestonesContainer.appendChild(card);
+            });
+        }
+
         // ============================================
         // MAIN
         // ============================================
@@ -748,6 +895,7 @@
                 renderActivity(data);
                 renderKanban(issues);
                 renderBacklog(issues);
+                renderCalendar(issues, data);
                 setupTabs();
                 updateStatus(true);
             } catch (error) {
